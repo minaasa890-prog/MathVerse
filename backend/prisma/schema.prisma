@@ -1,0 +1,390 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  password    String
+  role        Role     @default(STUDENT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  classroomId Int?
+  level       Int      @default(1)
+  xp          Int      @default(0)
+  parentId    Int?
+
+  aiUsages         AIUsage[]
+  attempts         Attempt[]
+  teacherClasses   Classroom[]          @relation("TeacherClasses")
+  examSessions     ExamSession[]
+  files            File[]
+  lessonProgress   LessonProgress[]
+  PracticeAttempt  PracticeAttempt[]
+  practiceHistory  PracticeHistory[]
+  practiceSessions PracticeSession[]
+  createdQuestions Question[]
+  achievements     StudentAchievement[]
+  studentSkills    StudentSkill[]
+  classroom        Classroom?           @relation("ClassStudents", fields: [classroomId], references: [id])
+  parent           User?                @relation("ParentStudents", fields: [parentId], references: [id])
+  children         User[]               @relation("ParentStudents")
+  writtenAnswers   WrittenAnswer[]
+  xpTransactions   XPTransaction[]
+
+  classroomMemberships ClassroomMembership[]
+}
+
+model Classroom {
+  id        Int      @id @default(autoincrement())
+  name      String
+  teacherId Int?
+  createdAt DateTime @default(now())
+
+  teacher     User?                 @relation("TeacherClasses", fields: [teacherId], references: [id])
+  exams       Exam[]
+  files       File[]
+  students    User[]                @relation("ClassStudents")
+  memberships ClassroomMembership[]
+}
+
+model ClassroomMembership {
+  id          Int      @id @default(autoincrement())
+  classroomId Int
+  studentId   Int
+  createdAt   DateTime @default(now())
+
+  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  student   User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([classroomId, studentId])
+  @@index([classroomId])
+  @@index([studentId])
+}
+
+model Question {
+  id            Int      @id @default(autoincrement())
+  questionType String @default("MULTIPLE_CHOICE")
+  title         String
+  description   String?
+  subject       String   @default("Math")
+  chapter       String?
+  difficulty    Int
+  creatorId     Int?
+  createdAt     DateTime @default(now())
+  correctAnswer String?
+  optionA       String?
+  optionB       String?
+  optionC       String?
+  optionD       String?
+  score         Int      @default(1)
+  solution      String?
+  explanation   String?
+
+  attempts         Attempt[]
+  examQuestions    ExamQuestion[]
+  practiceAnswers  PracticeAnswer[]
+  practiceAttempts PracticeAttempt[]
+  practiceHistory  PracticeHistory[]
+  creator          User?             @relation(fields: [creatorId], references: [id])
+  writtenAnswers   WrittenAnswer[]
+}
+
+model Attempt {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  questionId Int
+  answer     String
+  isCorrect  Boolean
+  score      Int      @default(0)
+  timeSpent  Int?
+  createdAt  DateTime @default(now())
+  examId     Int
+
+  exam     Exam     @relation(fields: [examId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+  student  User     @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, questionId, examId])
+}
+
+model Exam {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  classroomId Int
+  duration    Int
+  createdAt   DateTime   @default(now())
+  status      ExamStatus @default(DRAFT)
+
+  attempts  Attempt[]
+  classroom Classroom      @relation(fields: [classroomId], references: [id])
+  questions ExamQuestion[]
+  sessions  ExamSession[]
+}
+
+model ExamQuestion {
+  id         Int @id @default(autoincrement())
+  examId     Int
+  questionId Int
+  order      Int @default(0)
+
+  exam     Exam     @relation(fields: [examId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+}
+
+model ExamSession {
+  id                Int       @id @default(autoincrement())
+  studentId         Int
+  examId            Int
+  startTime         DateTime  @default(now())
+  endTime           DateTime?
+  status            String    @default("STARTED")
+  createdAt         DateTime  @default(now())
+  questionsSnapshot Json?
+
+  exam    Exam @relation(fields: [examId], references: [id])
+  student User @relation(fields: [studentId], references: [id])
+}
+
+model File {
+  id          Int      @id @default(autoincrement())
+  name        String
+  url         String
+  type        String
+  size        Int?
+  userId      Int?
+  classroomId Int?
+  createdAt   DateTime @default(now())
+
+  classroom Classroom? @relation(fields: [classroomId], references: [id])
+  user      User?      @relation(fields: [userId], references: [id])
+}
+
+model Subject {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  chapters Chapter[]
+}
+
+model Chapter {
+  id        Int      @id @default(autoincrement())
+  title     String
+  subjectId Int
+  createdAt DateTime @default(now())
+
+  subject Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+}
+
+model Lesson {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String?
+  chapterId Int
+  createdAt DateTime @default(now())
+
+  chapter  Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  contents LessonContent[]
+  progress LessonProgress[]
+}
+
+model LessonContent {
+  id        Int      @id @default(autoincrement())
+  title     String
+  lessonId  Int
+  createdAt DateTime @default(now())
+  content   String
+  fileUrl   String?
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model Achievement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  icon        String?
+  xpReward    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  studentAchievements StudentAchievement[]
+}
+
+model StudentAchievement {
+  id            Int      @id @default(autoincrement())
+  studentId     Int
+  achievementId Int
+  createdAt     DateTime @default(now())
+
+  practiceAttempts PracticeAttempt[]
+  achievement      Achievement       @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  student          User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, achievementId])
+}
+
+model LessonProgress {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  lessonId  Int
+  completed Boolean  @default(false)
+  progress  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lesson  Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, lessonId])
+}
+
+model StudentSkill {
+  id           Int      @id @default(autoincrement())
+  studentId    Int
+  chapter      String
+  correctCount Int      @default(0)
+  wrongCount   Int      @default(0)
+  masteryScore Float    @default(0)
+  level        Int      @default(1)
+  lastUpdated  DateTime @updatedAt
+
+  student User @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, chapter])
+}
+
+model PracticeAttempt {
+  id                   Int      @id @default(autoincrement())
+  studentId            Int
+  questionId           Int
+  answer               String
+  correct              Boolean
+  score                Int
+  createdAt            DateTime @default(now())
+  studentAchievementId Int?
+
+  question           Question            @relation(fields: [questionId], references: [id])
+  StudentAchievement StudentAchievement? @relation(fields: [studentAchievementId], references: [id])
+  student            User                @relation(fields: [studentId], references: [id])
+}
+
+model PracticeSession {
+  id                Int      @id @default(autoincrement())
+  studentId         Int
+  totalQuestions    Int
+  correctAnswers    Int      @default(0)
+  totalScore        Int      @default(0)
+  status            String   @default("STARTED")
+  createdAt         DateTime @default(now())
+  answeredQuestions Int      @default(0)
+  wrongAnswers      Int      @default(0)
+  chapter           String?
+  difficulty        Int      @default(1)
+  subject           String   @default("Math")
+
+  answers PracticeAnswer[]
+  student User             @relation(fields: [studentId], references: [id])
+}
+
+model PracticeAnswer {
+  id         Int      @id @default(autoincrement())
+  sessionId  Int
+  questionId Int
+  answer     String?
+  correct    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  question Question        @relation(fields: [questionId], references: [id])
+  session  PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model PracticeHistory {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  questionId Int
+  isAnswered Boolean  @default(false)
+  isCorrect  Boolean?
+  createdAt  DateTime @default(now())
+
+  question Question @relation(fields: [questionId], references: [id])
+  student  User     @relation(fields: [studentId], references: [id])
+}
+
+model WrittenAnswer {
+  id               Int      @id @default(autoincrement())
+  studentId        Int
+  questionId       Int
+  imagePath        String
+  isCorrect        Boolean?
+  errorType        String?
+  confidence       Float?
+  recognizedAnswer String?
+  expectedAnswer   String?
+  steps            Json?
+  explanation      String?
+  suggestion       String?
+  status           String   @default("PENDING")
+  aiProvider       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  student  User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([questionId])
+  @@index([createdAt])
+}
+
+model XPTransaction {
+  id           Int      @id @default(autoincrement())
+  studentId    Int
+  amount       Int
+  source       String
+  referenceKey String   @unique
+  createdAt    DateTime @default(now())
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([source])
+}
+
+model AIUsage {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  dateKey   String
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, dateKey])
+  @@index([studentId])
+  @@index([dateKey])
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  STARTED
+  COMPLETED
+}

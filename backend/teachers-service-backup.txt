@@ -1,0 +1,1349 @@
+﻿import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+
+@Injectable()
+export class TeachersService {
+
+
+  constructor(
+    private prisma: PrismaService
+  ) {}
+
+
+
+  // Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯ Ù…Ø¹Ù„Ù…
+  async dashboard(teacherId:number){
+
+
+    const classrooms =
+      await this.prisma.classroom.findMany({
+
+        where:{
+          teacherId: teacherId
+        },
+
+        include:{
+
+          students:true,
+
+          exams:true
+
+        }
+
+      });
+
+
+
+    const teacher =
+      await this.prisma.user.findUnique({
+
+        where:{
+          id:teacherId
+        }
+
+      });
+
+
+
+    if(!teacher){
+
+      return {
+        message:"Teacher not found"
+      };
+
+    }
+
+
+
+    return {
+
+      teacherId:teacher.id,
+
+      name:teacher.name,
+
+      totalClasses:
+        classrooms.length,
+
+
+      totalStudents:
+        classrooms.reduce(
+          (sum:number,c:any)=>
+            sum + c.students.length,
+          0
+        ),
+
+
+      totalExams:
+        classrooms.reduce(
+          (sum:number,c:any)=>
+            sum + c.exams.length,
+          0
+        ),
+
+
+      classes:
+
+        classrooms.map((c:any)=>({
+
+          id:c.id,
+
+          name:c.name,
+
+          students:c.students.length,
+
+          exams:c.exams.length
+
+        }))
+
+
+    };
+
+
+  }
+
+
+
+
+  // Ù„ÛŒØ³Øª Ø¯Ø§Ù†Ø´ Ø¢Ù…ÙˆØ²Ø§Ù† Ú©Ù„Ø§Ø³
+  async getClassStudents(classroomId:number){
+
+
+    const students =
+      await this.prisma.user.findMany({
+
+        where:{
+
+          classroomId: classroomId,
+
+          role:"STUDENT"
+
+        },
+
+
+        include:{
+
+          attempts:true
+
+        }
+
+      });
+
+
+
+    return students.map((student:any)=>{
+
+
+      let totalExams = student.attempts.length;
+
+      let totalScore = 0;
+
+
+
+      student.attempts.forEach(
+        (a:any)=>{
+
+          totalScore += Number(
+            a.score ?? 0
+          );
+
+        }
+      );
+
+
+
+      return {
+
+        id:student.id,
+
+        name:student.name,
+
+        email:student.email,
+
+
+        totalExams,
+
+
+        average:
+
+          totalExams > 0
+
+          ?
+
+          Math.round(
+            totalScore / totalExams
+          )
+
+          :
+
+          0
+
+      };
+
+
+    });
+
+
+  }
+
+
+
+
+
+  // Ù†ØªØ§ÛŒØ¬ Ø¢Ø²Ù…ÙˆÙ† Ù‡Ø§ÛŒ Ú©Ù„Ø§Ø³
+  async getClassResults(classroomId:number){
+
+
+    const exams =
+      await this.prisma.exam.findMany({
+
+        where:{
+
+          classroomId: classroomId
+
+        },
+
+
+        include:{
+
+          attempts:true
+
+        }
+
+      });
+
+
+
+    return exams.map((exam:any)=>{
+
+
+      const scores:number[] =
+
+        exam.attempts.map(
+          (a:any)=>
+            Number(a.score ?? 0)
+        );
+
+
+
+      const total:number =
+
+        scores.reduce(
+          (a:number,b:number)=>
+            a+b,
+          0
+        );
+
+
+
+      return {
+
+
+        examId:exam.id,
+
+
+        examTitle:exam.title,
+
+
+        students:scores.length,
+
+
+        averageScore:
+
+          scores.length
+
+          ?
+
+          Math.round(
+            total / scores.length
+          )
+
+          :
+
+          0,
+
+
+        highestScore:
+
+          scores.length
+
+          ?
+
+          Math.max(...scores)
+
+          :
+
+          0,
+
+
+        lowestScore:
+
+          scores.length
+
+          ?
+
+          Math.min(...scores)
+
+          :
+
+          0
+
+
+      };
+
+
+    });
+
+
+  }
+
+
+
+
+
+
+
+  // Ø±ØªØ¨Ù‡ Ø¨Ù†Ø¯ÛŒ Ø¯Ø§Ù†Ø´ Ø¢Ù…ÙˆØ²Ø§Ù†
+  async getClassRanking(classroomId:number){
+
+
+    const students =
+      await this.prisma.user.findMany({
+
+        where:{
+
+          classroomId: classroomId,
+
+          role:"STUDENT"
+
+        },
+
+
+        include:{
+
+          attempts:true
+
+        }
+
+      });
+
+
+
+    const ranking =
+
+      students.map((student:any)=>{
+
+
+        let totalScore = 0;
+
+        const exams =
+          student.attempts.length;
+
+
+
+        student.attempts.forEach(
+          (a:any)=>{
+
+            totalScore += Number(
+              a.score ?? 0
+            );
+
+          }
+        );
+
+
+
+        return {
+
+
+          studentId:student.id,
+
+
+          name:student.name,
+
+
+          exams,
+
+
+          averageScore:
+
+
+            exams > 0
+
+            ?
+
+            Math.round(
+              totalScore / exams
+            )
+
+            :
+
+            0
+
+
+        };
+
+
+      });
+
+
+
+    ranking.sort(
+      (a:any,b:any)=>
+        b.averageScore - a.averageScore
+    );
+
+
+
+    return ranking.map(
+      (student:any,index:number)=>({
+
+        rank:index+1,
+
+        ...student
+
+      })
+    );
+
+
+  }
+
+
+
+
+
+
+
+  // Ú¯Ø²Ø§Ø±Ø´ Ú©Ø§Ù…Ù„ Ø¯Ø§Ù†Ø´ Ø¢Ù…ÙˆØ²
+  async getStudentReport(studentId:number){
+
+
+    const student =
+
+      await this.prisma.user.findUnique({
+
+        where:{
+
+          id:studentId
+
+        },
+
+
+        include:{
+
+          attempts:true
+
+        }
+
+      });
+
+
+
+    if(!student){
+
+      return {
+
+        message:"Student not found"
+
+      };
+
+    }
+
+
+
+
+    const totalExams =
+      student.attempts.length;
+
+
+
+    let totalScore = 0;
+
+
+
+    student.attempts.forEach(
+      (a:any)=>{
+
+        totalScore += Number(
+          a.score ?? 0
+        );
+
+      }
+    );
+
+
+
+    const averageScore =
+
+      totalExams > 0
+
+      ?
+
+      Math.round(
+        totalScore / totalExams
+      )
+
+      :
+
+      0;
+
+
+
+
+    return {
+
+
+      studentId:student.id,
+
+
+      name:student.name,
+
+
+      totalExams,
+
+
+      averageScore,
+
+
+
+      correctAnswers:
+
+        averageScore >= 50
+
+        ?
+
+        1
+
+        :
+
+        0,
+
+
+
+      wrongAnswers:
+
+        averageScore < 50
+
+        ?
+
+        1
+
+        :
+
+        0,
+
+
+
+      strengths:
+
+        averageScore >= 70
+
+        ?
+
+        ["Math"]
+
+        :
+
+        [],
+
+
+
+      weaknesses:
+
+        averageScore < 50
+
+        ?
+
+        ["Need more practice"]
+
+        :
+
+        [],
+
+
+
+      recommendation:
+
+        averageScore >= 70
+
+        ?
+
+        "Continue advanced exercises"
+
+        :
+
+        "Practice basic exercises"
+
+
+    };
+
+
+  }
+
+
+async studentAnalysis(studentId:number){
+
+
+const student =
+await this.prisma.user.findUnique({
+
+where:{
+ id:studentId
+},
+
+
+include:{
+
+
+attempts:{
+
+include:{
+ exam:true
+}
+
+}
+
+}
+
+});
+
+
+
+if(!student){
+
+return {
+message:"Student not found"
+};
+
+}
+
+
+
+let totalScore=0;
+
+let count=0;
+
+
+
+const subjects:any={};
+
+
+
+student.attempts.forEach((a)=>{
+
+
+const score =
+a.score ?? 0;
+
+
+totalScore += score;
+
+count++;
+
+
+
+const subject =
+a.exam.title;
+
+
+
+if(!subjects[subject]){
+
+subjects[subject]=[];
+
+}
+
+
+
+subjects[subject].push(score);
+
+
+
+});
+
+
+
+const average =
+count===0
+?
+0
+:
+Math.round(totalScore/count);
+
+
+
+const weakSubjects =
+Object.keys(subjects)
+.filter(s=>{
+
+const avg =
+subjects[s]
+.reduce(
+(a:number,b:number)=>a+b,
+0
+)
+/subjects[s].length;
+
+
+return avg < 50;
+
+
+});
+
+
+
+
+const strongSubjects =
+Object.keys(subjects)
+.filter(s=>{
+
+const avg =
+subjects[s]
+.reduce(
+(a:number,b:number)=>a+b,
+0
+)
+/subjects[s].length;
+
+
+return avg >= 80;
+
+
+});
+
+
+
+
+let level="Beginner";
+
+
+if(average>=80)
+level="Advanced";
+
+else if(average>=50)
+level="Intermediate";
+
+
+
+
+return {
+
+
+studentId:student.id,
+
+name:student.name,
+
+
+average,
+
+
+level,
+
+
+weakSubjects,
+
+
+strongSubjects,
+
+
+
+recommendations:
+
+
+weakSubjects.length>0
+
+?
+
+[
+"Practice weak subjects",
+"Complete 20 extra exercises",
+"Review previous mistakes"
+]
+
+:
+
+[
+"Continue advanced practice"
+]
+
+
+};
+
+
+
+}
+async studentPractice(studentId:number){
+
+
+const student =
+await this.prisma.user.findUnique({
+
+where:{
+ id:studentId
+},
+
+
+include:{
+ attempts:{
+  include:{
+   exam:true
+  }
+ }
+}
+
+});
+
+
+if(!student){
+
+return {
+ message:"Student not found"
+};
+
+}
+
+
+
+let weakSubject="General";
+
+let lowestScore=999;
+
+
+
+student.attempts.forEach(
+(attempt:any)=>{
+
+
+if(
+attempt.score < lowestScore
+){
+
+lowestScore = attempt.score;
+
+weakSubject =
+attempt.exam.title;
+
+}
+
+
+});
+
+
+const practice = [
+
+
+{
+question:
+`Solve equation: 2x + 5 = 15`,
+difficulty:"Easy",
+subject:weakSubject
+},
+
+
+{
+question:
+`Calculate area of rectangle with length 8 and width 5`,
+difficulty:"Easy",
+subject:weakSubject
+},
+
+
+{
+question:
+`Find the value of x: 3x - 7 = 20`,
+difficulty:"Medium",
+subject:weakSubject
+},
+
+
+{
+question:
+`Solve: xÂ² + 5x + 6 = 0`,
+difficulty:"Hard",
+subject:weakSubject
+}
+
+
+];
+
+
+
+return {
+
+
+studentId:student.id,
+
+name:student.name,
+
+
+subject:
+weakSubject,
+
+
+level:
+lowestScore < 10
+?
+"Beginner"
+:
+lowestScore < 15
+?
+"Intermediate"
+:
+"Advanced",
+
+
+practice
+
+
+};
+
+
+
+}
+async aiAnalysis(studentId:number){
+
+
+const student =
+await this.prisma.user.findUnique({
+
+where:{
+ id:studentId
+},
+
+
+include:{
+
+
+attempts:{
+
+include:{
+
+exam:true
+
+}
+
+}
+
+}
+
+
+});
+
+
+
+if(!student){
+
+return {
+message:"Student not found"
+};
+
+}
+
+
+
+
+let totalScore = 0;
+
+let totalExam = 0;
+
+
+const subjects:any = {};
+
+
+
+student.attempts.forEach(
+(attempt:any)=>{
+
+
+totalExam++;
+
+totalScore += Number(attempt.score);
+
+
+
+const subject =
+attempt.exam.title;
+
+
+
+if(!subjects[subject]){
+
+
+subjects[subject]={
+
+total:0,
+
+count:0
+
+};
+
+
+}
+
+
+
+subjects[subject].total +=
+Number(attempt.score);
+
+
+subjects[subject].count++;
+
+
+
+}
+
+);
+
+
+
+
+const average =
+totalExam === 0
+?
+0
+:
+Math.round(
+totalScore / totalExam
+);
+
+
+
+const weakTopics:any[]=[];
+
+const strongTopics:any[]=[];
+
+
+
+Object.keys(subjects)
+.forEach(
+(subject)=>{
+
+
+const score =
+Math.round(
+subjects[subject].total /
+subjects[subject].count
+);
+
+
+
+if(score < 10){
+
+weakTopics.push({
+
+topic:subject,
+
+score
+
+});
+
+
+}
+else{
+
+
+strongTopics.push({
+
+topic:subject,
+
+score
+
+});
+
+
+}
+
+
+
+});
+
+
+
+
+
+let level="Beginner";
+
+
+if(average>=15){
+
+level="Advanced";
+
+}
+
+else if(average>=10){
+
+level="Intermediate";
+
+}
+
+
+
+
+let learningPlan=[
+
+
+"Review previous mistakes",
+
+"Practice weak subjects",
+
+"Complete daily exercises"
+
+
+];
+
+
+
+if(weakTopics.length>0){
+
+
+learningPlan.unshift(
+
+`Focus on ${weakTopics[0].topic}`
+
+);
+
+
+}
+
+
+
+
+return {
+
+
+studentId:student.id,
+
+
+name:student.name,
+
+
+average,
+
+
+level,
+
+
+weakTopics,
+
+
+strongTopics,
+
+
+learningPlan
+
+
+};
+
+
+
+}
+// Ø±ØªØ¨Ù‡ Ø¨Ù†Ø¯ÛŒ Ø¯Ø§Ù†Ø´ Ø¢Ù…ÙˆØ²Ø§Ù† Ú©Ù„Ø§Ø³
+async ranking(classroomId:number){
+
+
+const students =
+await this.prisma.user.findMany({
+
+where:{
+ classroomId: classroomId,
+ role:"STUDENT"
+},
+
+
+include:{
+
+attempts:true
+
+}
+
+
+});
+
+
+
+const ranking =
+students.map((student:any)=>{
+
+
+let total=0;
+let count=0;
+
+
+
+student.attempts.forEach(
+(a:any)=>{
+
+total += Number(a.score ?? 0);
+
+count++;
+
+}
+
+);
+
+
+
+return {
+
+
+studentId:student.id,
+
+name:student.name,
+
+
+exams:count,
+
+
+averageScore:
+count
+?
+Math.round(total/count)
+:
+0
+
+
+};
+
+
+
+});
+
+
+
+return ranking
+.sort(
+(a,b)=>b.averageScore-a.averageScore
+)
+.map(
+(student,index)=>({
+
+rank:index+1,
+
+...student
+
+})
+);
+
+
+}
+
+
+
+
+
+// ØªÙˆÙ„ÛŒØ¯ ØªÙ…Ø±ÛŒÙ† Ù¾ÛŒØ´Ù†Ù‡Ø§Ø¯ÛŒ
+async practice(studentId:number){
+
+
+const student =
+await this.prisma.user.findUnique({
+
+where:{
+ id:studentId
+},
+
+include:{
+
+attempts:{
+
+include:{
+exam:true
+}
+
+}
+
+}
+
+
+});
+
+
+
+if(!student){
+
+return {
+message:"Student not found"
+};
+
+}
+
+
+
+let weakSubject="General";
+
+
+
+if(student.attempts.length>0){
+
+
+const weak =
+student.attempts
+.sort(
+(a,b)=>
+Number(a.score)-Number(b.score)
+)[0];
+
+
+weakSubject =
+weak.exam.title;
+
+
+}
+
+
+
+
+return {
+
+
+studentId:student.id,
+
+
+name:student.name,
+
+
+subject:weakSubject,
+
+
+level:"Beginner",
+
+
+practice:[
+
+
+{
+question:"Solve equation: 2x + 5 = 15",
+difficulty:"Easy",
+subject:weakSubject
+},
+
+
+{
+question:"Calculate area of rectangle",
+difficulty:"Easy",
+subject:weakSubject
+},
+
+
+{
+question:"Find value of x: 3x - 7 = 20",
+difficulty:"Medium",
+subject:weakSubject
+},
+
+
+{
+question:"Solve quadratic equation",
+difficulty:"Hard",
+subject:weakSubject
+}
+
+
+]
+
+
+};
+
+
+}
+}

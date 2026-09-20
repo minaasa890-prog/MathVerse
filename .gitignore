@@ -1,0 +1,11 @@
+﻿node_modules/
+dist/
+.next/
+.env
+.env.*
+!.env.example
+*.log
+.vite/
+coverage/
+backend/uploads/
+backend/tsconfig.build.tsbuildinfo
