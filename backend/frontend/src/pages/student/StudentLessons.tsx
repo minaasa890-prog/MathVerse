@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../../api/config";
 
 interface LessonContent {
   id: number;
@@ -31,7 +32,6 @@ interface NextLesson {
   chapter?: string;
 }
 
-const API_URL = "http://localhost:4000";
 const STUDENT_ID = 1;
 
 const StudentLessons: React.FC = () => {
@@ -719,3 +719,4 @@ const StudentLessons: React.FC = () => {
 };
 
 export default StudentLessons;
+

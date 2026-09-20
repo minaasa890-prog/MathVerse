@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const API_URL = "http://localhost:4000";
+import { API_URL } from "../../api/config";
 
 type Achievement = {
   id: number;
@@ -72,10 +71,6 @@ export default function StudentDashboard() {
           );
         }
 
-        /*
-         * Backend ممکن است مستقیماً آرایه برگرداند
-         * یا آن را داخل achievements قرار دهد.
-         */
         const achievementList =
           Array.isArray(result)
             ? result
@@ -180,17 +175,6 @@ export default function StudentDashboard() {
     analysis.mastery ?? 0
   );
 
-  /*
-   * Level Progress
-   *
-   * Level 1: 0 - 99 XP
-   * Level 2: 100 - 199 XP
-   * Level 3: 200 - 299 XP
-   *
-   * بنابراین:
-   * شروع Level = (level - 1) * 100
-   * پایان Level = level * 100
-   */
   const currentLevelStartXp = Math.max(
     0,
     (level - 1) * 100
@@ -219,16 +203,10 @@ export default function StudentDashboard() {
         )
       : 0;
 
-  /*
-   * Skills
-   */
   const skills = analysis.skills || {};
 
   const skillEntries = Object.entries(skills);
 
-  /*
-   * Weak Areas
-   */
   const weakAreas = skillEntries
     .filter(([_, value]: any) => {
       return (
@@ -243,9 +221,6 @@ export default function StudentDashboard() {
       );
     });
 
-  /*
-   * AI Recommendation
-   */
   const recommendedDifficulty = Number(
     aiDecision.recommendedDifficulty ?? 1
   );
@@ -260,7 +235,6 @@ export default function StudentDashboard() {
     >
       <div className="mx-auto max-w-6xl space-y-6">
 
-        {/* Header */}
         <section className="rounded-3xl bg-white p-8 shadow">
           <h1 className="text-4xl font-bold text-gray-800">
             سلام {studentName} 👋
@@ -271,10 +245,8 @@ export default function StudentDashboard() {
           </p>
         </section>
 
-        {/* Statistics */}
         <section className="grid gap-5 md:grid-cols-4">
 
-          {/* Level */}
           <div className="rounded-3xl bg-blue-50 p-6 shadow">
             <p className="text-gray-500">
               سطح فعلی
@@ -285,7 +257,6 @@ export default function StudentDashboard() {
             </h2>
           </div>
 
-          {/* XP */}
           <div className="rounded-3xl bg-green-50 p-6 shadow">
             <p className="text-gray-500">
               XP
@@ -296,7 +267,6 @@ export default function StudentDashboard() {
             </h2>
           </div>
 
-          {/* Questions */}
           <div className="rounded-3xl bg-purple-50 p-6 shadow">
             <p className="text-gray-500">
               تعداد سؤال
@@ -307,7 +277,6 @@ export default function StudentDashboard() {
             </h2>
           </div>
 
-          {/* Accuracy */}
           <div className="rounded-3xl bg-orange-50 p-6 shadow">
             <p className="text-gray-500">
               درصد موفقیت
@@ -320,7 +289,6 @@ export default function StudentDashboard() {
 
         </section>
 
-        {/* Detailed Statistics */}
         <section className="rounded-3xl bg-white p-8 shadow">
 
           <h2 className="mb-6 text-2xl font-bold">
@@ -362,7 +330,6 @@ export default function StudentDashboard() {
           </div>
         </section>
 
-        {/* XP Progress */}
         <section className="rounded-3xl bg-white p-8 shadow">
 
           <div className="mb-3 flex items-center justify-between">
@@ -394,7 +361,6 @@ export default function StudentDashboard() {
 
         </section>
 
-        {/* Achievements */}
         <section className="rounded-3xl bg-white p-8 shadow">
 
           <div className="mb-6 flex items-center justify-between">
@@ -484,7 +450,6 @@ export default function StudentDashboard() {
 
         </section>
 
-        {/* AI Recommendation */}
         <section className="rounded-3xl bg-white p-8 shadow">
 
           <h2 className="mb-5 text-2xl font-bold">
@@ -521,7 +486,6 @@ export default function StudentDashboard() {
 
         </section>
 
-        {/* Weak Areas */}
         <section className="rounded-3xl bg-white p-8 shadow">
 
           <h2 className="mb-5 text-2xl font-bold">
@@ -581,7 +545,6 @@ export default function StudentDashboard() {
 
         </section>
 
-        {/* All Skills */}
         <section className="rounded-3xl bg-white p-8 shadow">
 
           <h2 className="mb-5 text-2xl font-bold">
@@ -660,7 +623,6 @@ export default function StudentDashboard() {
 
         </section>
 
-        {/* Next Question */}
         <section className="rounded-3xl bg-white p-8 shadow">
 
           <h2 className="mb-5 text-2xl font-bold">
@@ -705,7 +667,6 @@ export default function StudentDashboard() {
 
         </section>
 
-        {/* Quick Actions */}
         <section className="grid gap-5 md:grid-cols-3">
 
           <a

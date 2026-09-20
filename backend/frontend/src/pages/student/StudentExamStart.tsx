@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
-const API_URL = "http://192.168.43.167:4000";
+import { API_URL } from "../../api/config";
 
 export default function StudentExamStart() {
   const { examId } = useParams();
@@ -585,21 +584,21 @@ export default function StudentExamStart() {
           </p>
 
           <p>
-  XP این تلاش:{" "}
-  {result.earnedXP}
-</p>
+            XP این تلاش:{" "}
+            {result.earnedXP}
+          </p>
 
-{result.earnedXP === 0 && (
-  <p
-    style={{
-      marginTop: "10px",
-      color: "#666",
-      fontSize: "14px",
-    }}
-  >
-    ℹ️ پاداش XP این سؤال قبلاً دریافت شده است.
-  </p>
-)}
+          {result.earnedXP === 0 && (
+            <p
+              style={{
+                marginTop: "10px",
+                color: "#666",
+                fontSize: "14px",
+              }}
+            >
+              ℹ️ پاداش XP این سؤال قبلاً دریافت شده است.
+            </p>
+          )}
         </div>
       )}
     </div>

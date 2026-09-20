@@ -1,26 +1,38 @@
 import { useEffect, useRef, useState } from "react";
+import { API_URL } from "../../api/config";
 
 export default function StudentPractice() {
   const studentId = 1;
-  const API_URL = "http://192.168.43.167:4000";
 
-  const [sessionId, setSessionId] = useState<number | null>(null);
-  const [question, setQuestion] = useState<any>(null);
+  const [sessionId, setSessionId] =
+    useState<number | null>(null);
 
-  const [selectedAnswer, setSelectedAnswer] = useState("");
+  const [question, setQuestion] =
+    useState<any>(null);
 
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] =
+    useState("");
 
-  const [finished, setFinished] = useState(false);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [answerResult, setAnswerResult] = useState<any>(null);
+  const [submitting, setSubmitting] =
+    useState(false);
 
-  const [result, setResult] = useState<any>(null);
+  const [finished, setFinished] =
+    useState(false);
 
-  const [questionsReview, setQuestionsReview] = useState<any[]>([]);
+  const [answerResult, setAnswerResult] =
+    useState<any>(null);
 
-  const [showSolution, setShowSolution] = useState<number | null>(null);
+  const [result, setResult] =
+    useState<any>(null);
+
+  const [questionsReview, setQuestionsReview] =
+    useState<any[]>([]);
+
+  const [showSolution, setShowSolution] =
+    useState<number | null>(null);
 
   // =====================================================
   // پاسخ تشریحی از روی تصویر
@@ -218,6 +230,7 @@ export default function StudentPractice() {
           headers: {
             "Content-Type":
               "application/json",
+
             Authorization:
               `Bearer ${token}`,
           },
@@ -2193,4 +2206,3 @@ const styles: any = {
     cursor: "pointer",
   },
 };
-

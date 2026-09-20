@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { API_URL } from "../api/config";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function Login() {
       setLoading(true);
 
       const response = await fetch(
-        "http://192.168.43.167:4000/auth/login",
+        `${API_URL}/auth/login`,
         {
           method: "POST",
           headers: {
@@ -53,8 +54,9 @@ export default function Login() {
       ========================================== */
 
       login(data);
+
       console.log("LOGIN USER:", data.user);
-console.log("LOGIN ROLE:", data.user?.role);
+      console.log("LOGIN ROLE:", data.user?.role);
 
       /* ==========================================
          انتقال بر اساس نقش کاربر
@@ -98,7 +100,6 @@ console.log("LOGIN ROLE:", data.user?.role);
         overflow: "hidden",
       }}
     >
-
       {/* ==========================================
           Background decorations
       ========================================== */}
@@ -149,7 +150,6 @@ console.log("LOGIN ROLE:", data.user?.role);
           zIndex: 1,
         }}
       >
-
         {/* ========================================
             LEFT / BRAND SECTION
         ======================================== */}
@@ -169,7 +169,6 @@ console.log("LOGIN ROLE:", data.user?.role);
             overflow: "hidden",
           }}
         >
-
           {/* Mathematical decorations */}
 
           <div
@@ -316,7 +315,6 @@ console.log("LOGIN ROLE:", data.user?.role);
               gap: "16px",
             }}
           >
-
             <div
               style={{
                 display: "flex",
@@ -397,10 +395,8 @@ console.log("LOGIN ROLE:", data.user?.role);
                 یادگیری با کمک هوش مصنوعی
               </span>
             </div>
-
           </div>
         </section>
-
 
         {/* ========================================
             RIGHT / LOGIN FORM
@@ -416,7 +412,6 @@ console.log("LOGIN ROLE:", data.user?.role);
             background: "#ffffff",
           }}
         >
-
           {/* Heading */}
 
           <div
@@ -466,7 +461,6 @@ console.log("LOGIN ROLE:", data.user?.role);
               کاربری خود شوید.
             </p>
           </div>
-
 
           {/* ======================================
               Email
@@ -554,7 +548,6 @@ console.log("LOGIN ROLE:", data.user?.role);
               />
             </div>
           </div>
-
 
           {/* ======================================
               Password
@@ -681,7 +674,6 @@ console.log("LOGIN ROLE:", data.user?.role);
             </div>
           </div>
 
-
           {/* ======================================
               Options
           ====================================== */}
@@ -734,7 +726,6 @@ console.log("LOGIN ROLE:", data.user?.role);
             </button>
           </div>
 
-
           {/* ======================================
               Error
           ====================================== */}
@@ -756,7 +747,6 @@ console.log("LOGIN ROLE:", data.user?.role);
               ⚠️ {error}
             </div>
           )}
-
 
           {/* ======================================
               Login button
@@ -810,7 +800,6 @@ console.log("LOGIN ROLE:", data.user?.role);
               : "ورود به MathVerse ←"}
           </button>
 
-
           {/* ======================================
               Divider
           ====================================== */}
@@ -847,7 +836,6 @@ console.log("LOGIN ROLE:", data.user?.role);
             />
           </div>
 
-
           {/* ======================================
               Register
           ====================================== */}
@@ -883,39 +871,40 @@ console.log("LOGIN ROLE:", data.user?.role);
             </button>
           </div>
 
-{/* ======================================
-    Creator Signature
-====================================== */}
+          {/* ======================================
+              Creator Signature
+          ====================================== */}
 
-<div
-  style={{
-    marginTop: "22px",
-    paddingTop: "18px",
-    borderTop: "1px solid #f0f0f0",
-    textAlign: "center",
-  }}
->
-  <div
-    style={{
-      fontSize: "11px",
-      color: "#9ca3af",
-      marginBottom: "5px",
-    }}
-  >
-    طراحی و توسعه
-  </div>
+          <div
+            style={{
+              marginTop: "22px",
+              paddingTop: "18px",
+              borderTop: "1px solid #f0f0f0",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "11px",
+                color: "#9ca3af",
+                marginBottom: "5px",
+              }}
+            >
+              طراحی و توسعه
+            </div>
 
-  <div
-    style={{
-      fontSize: "13px",
-      fontWeight: "700",
-      color: "#374151",
-      letterSpacing: "0.2px",
-    }}
-  >
-    مهندس مجید زینال نژاد
-  </div>
-</div>
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: "700",
+                color: "#374151",
+                letterSpacing: "0.2px",
+              }}
+            >
+              مهندس مجید زینال نژاد
+            </div>
+          </div>
+
           {/* Footer */}
 
           <div
@@ -928,10 +917,8 @@ console.log("LOGIN ROLE:", data.user?.role);
           >
             MathVerse • Smart Mathematics Learning
           </div>
-
         </section>
       </div>
-
 
       {/* ==========================================
           Responsive style
@@ -970,7 +957,6 @@ console.log("LOGIN ROLE:", data.user?.role);
           }
         `}
       </style>
-
     </main>
   );
 }

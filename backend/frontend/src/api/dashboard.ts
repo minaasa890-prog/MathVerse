@@ -1,19 +1,12 @@
 import axios from "axios";
-
-
-const API = "http://localhost:4000";
-
+import { API_URL } from "./config";
 
 export async function getStudentDashboard(
-  studentId:number
-){
-
-  const response =
-    await axios.get(
-      `${API}/dashboard/student/${studentId}`
-    );
-
+  studentId: number
+) {
+  const response = await axios.get(
+    `${API_URL}/dashboard/student/${studentId}`
+  );
 
   return response.data;
-
 }

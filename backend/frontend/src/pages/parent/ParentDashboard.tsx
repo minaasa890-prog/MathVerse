@@ -11,6 +11,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import { API_URL } from "../../api/config";
+
 interface ChildData {
   studentId: number;
   name: string;
@@ -68,10 +70,6 @@ export default function ParentDashboard() {
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        // =====================================================
-        // دریافت اطلاعات کاربر و JWT
-        // =====================================================
-
         const userText =
           localStorage.getItem("user");
 
@@ -98,19 +96,11 @@ export default function ParentDashboard() {
           return;
         }
 
-        // =====================================================
-        // تبدیل اطلاعات کاربر
-        // =====================================================
-
         const user =
           JSON.parse(userText);
 
         const parentId =
           Number(user.id);
-
-        // =====================================================
-        // بررسی شناسه والد
-        // =====================================================
 
         if (!parentId) {
           setError(
@@ -121,10 +111,6 @@ export default function ParentDashboard() {
 
           return;
         }
-
-        // =====================================================
-        // بررسی Role
-        // =====================================================
 
         if (user.role !== "PARENT") {
           setError(
@@ -141,13 +127,9 @@ export default function ParentDashboard() {
           parentId,
         );
 
-        // =====================================================
-        // درخواست امن به Backend
-        // =====================================================
-
         const response =
           await fetch(
-            `http://192.168.43.167:4000/parent/dashboard/${parentId}`,
+            `${API_URL}/parent/dashboard/${parentId}`,
             {
               method: "GET",
 
@@ -158,10 +140,6 @@ export default function ParentDashboard() {
               },
             },
           );
-
-        // =====================================================
-        // بررسی پاسخ
-        // =====================================================
 
         if (!response.ok) {
           if (response.status === 401) {
@@ -180,10 +158,6 @@ export default function ParentDashboard() {
             `Server error: ${response.status}`,
           );
         }
-
-        // =====================================================
-        // دریافت اطلاعات داشبورد
-        // =====================================================
 
         const result: ParentData =
           await response.json();
@@ -234,10 +208,6 @@ export default function ParentDashboard() {
     loadDashboard();
   }, []);
 
-  // =========================================================
-  // Loading
-  // =========================================================
-
   if (loading) {
     return (
       <div style={styles.center}>
@@ -247,10 +217,6 @@ export default function ParentDashboard() {
       </div>
     );
   }
-
-  // =========================================================
-  // Error
-  // =========================================================
 
   if (error) {
     return (
@@ -265,10 +231,6 @@ export default function ParentDashboard() {
     );
   }
 
-  // =========================================================
-  // No data
-  // =========================================================
-
   if (!data) {
     return (
       <div style={styles.center}>
@@ -278,10 +240,6 @@ export default function ParentDashboard() {
       </div>
     );
   }
-
-  // =========================================================
-  // No children
-  // =========================================================
 
   if (
     !data.children ||
@@ -297,14 +255,8 @@ export default function ParentDashboard() {
     );
   }
 
-  // =========================================================
-  // Dashboard
-  // =========================================================
-
   return (
     <div style={styles.page}>
-      {/* Header */}
-
       <div style={styles.header}>
         <div>
           <h1 style={styles.title}>
@@ -322,15 +274,11 @@ export default function ParentDashboard() {
         </div>
       </div>
 
-      {/* Children */}
-
       {data.children.map(
         (child) => (
           <div
             key={child.studentId}
           >
-            {/* Student Header */}
-
             <div
               style={
                 styles.studentHeader
@@ -378,8 +326,6 @@ export default function ParentDashboard() {
               </div>
             </div>
 
-            {/* Report Button */}
-
             <div
               style={
                 styles.reportButtonContainer
@@ -399,8 +345,6 @@ export default function ParentDashboard() {
                 دانش‌آموز
               </button>
             </div>
-
-            {/* Statistics */}
 
             <div style={styles.cards}>
               <InfoCard
@@ -434,8 +378,6 @@ export default function ParentDashboard() {
               />
             </div>
 
-            {/* Progress */}
-
             <div style={styles.section}>
               <h2
                 style={
@@ -444,8 +386,6 @@ export default function ParentDashboard() {
               >
                 📈 پیشرفت تحصیلی
               </h2>
-
-              {/* Overall progress */}
 
               <div
                 style={
@@ -475,8 +415,6 @@ export default function ParentDashboard() {
                 عملکرد صحیح:{" "}
                 {child.average}%
               </p>
-
-              {/* Progress Chart */}
 
               {child.progressHistory &&
               child
@@ -578,8 +516,6 @@ export default function ParentDashboard() {
               )}
             </div>
 
-            {/* Chapter Performance */}
-
             {child.chapterPerformance &&
               child
                 .chapterPerformance
@@ -674,11 +610,7 @@ export default function ParentDashboard() {
                 </div>
               )}
 
-            {/* Strengths / Weaknesses */}
-
             <div style={styles.columns}>
-              {/* Strengths */}
-
               <div
                 style={
                   styles.section
@@ -721,8 +653,6 @@ export default function ParentDashboard() {
                   </p>
                 )}
               </div>
-
-              {/* Weaknesses */}
 
               <div
                 style={
@@ -768,8 +698,6 @@ export default function ParentDashboard() {
               </div>
             </div>
 
-            {/* Recommendation */}
-
             <div
               style={
                 styles.recommendation
@@ -798,10 +726,6 @@ export default function ParentDashboard() {
   );
 }
 
-// =========================================================
-// Info Card
-// =========================================================
-
 function InfoCard({
   icon,
   title,
@@ -827,10 +751,6 @@ function InfoCard({
     </div>
   );
 }
-
-// =========================================================
-// Styles
-// =========================================================
 
 const styles: Record<
   string,
@@ -1120,4 +1040,3 @@ const styles: Record<
     lineHeight: 1.8,
   },
 };
-

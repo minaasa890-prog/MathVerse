@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
-const API_URL = "http://192.168.43.167:4000";
+import { API_URL } from "../../api/config";
 
 type TopicAnalysis = {
   topic: string;

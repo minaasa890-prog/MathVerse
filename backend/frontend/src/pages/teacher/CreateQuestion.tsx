@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
-const API_URL = "http://192.168.43.167:4000";
+import { API_URL } from "../../api/config";
 
 type QuestionType =
   | "MULTIPLE_CHOICE"

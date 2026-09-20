@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const API_URL = "http://localhost:4000";
+import { API_URL } from "../../api/config";
 
 const STUDENT_ID = 1;
 
@@ -241,9 +240,7 @@ export default function StudentAI() {
             marginBottom: "20px",
           }}
         >
-          <div
-            style={cardStyle}
-          >
+          <div style={cardStyle}>
             <div style={iconStyle}>🎯</div>
 
             <h3>دقت عملکرد</h3>
@@ -261,9 +258,7 @@ export default function StudentAI() {
             )}
           </div>
 
-          <div
-            style={cardStyle}
-          >
+          <div style={cardStyle}>
             <div style={iconStyle}>📝</div>
 
             <h3>تعداد تلاش‌ها</h3>
@@ -281,9 +276,7 @@ export default function StudentAI() {
             )}
           </div>
 
-          <div
-            style={cardStyle}
-          >
+          <div style={cardStyle}>
             <div style={iconStyle}>✅</div>
 
             <h3>پاسخ‌های صحیح</h3>
@@ -301,9 +294,7 @@ export default function StudentAI() {
             )}
           </div>
 
-          <div
-            style={cardStyle}
-          >
+          <div style={cardStyle}>
             <div style={iconStyle}>🏆</div>
 
             <h3>سطح فعلی</h3>

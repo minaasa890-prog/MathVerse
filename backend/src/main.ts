@@ -10,14 +10,19 @@ async function bootstrap() {
       AppModule,
     );
 
+  const frontendUrl = process.env.FRONTEND_URL;
+
+  const allowedOrigins: string[] = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://192.168.43.167:5173',
+    'http://192.168.43.167:5174',
+    ...(frontendUrl ? [frontendUrl] : []),
+  ];
+
   app.enableCors({
-    origin: [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://192.168.43.167:5173',
-  'http://192.168.43.167:5174',
-],
+    origin: allowedOrigins,
     methods: [
       'GET',
       'POST',
@@ -41,10 +46,12 @@ async function bootstrap() {
     },
   );
 
-  await app.listen(4000);
+  const port = process.env.PORT || 4000;
+
+  await app.listen(port);
 
   console.log(
-    '🚀 MathVerse API running on http://localhost:4000',
+    `🚀 MathVerse API running on port ${port}`,
   );
 }
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_URL } from "../../api/config";
 
-const API_URL = "http://localhost:4000";
 const STUDENT_ID = 1;
 
 interface LessonContent {
@@ -240,12 +240,12 @@ function StudentLessonDetail() {
 
   return (
     <div
+      dir="rtl"
       style={{
         maxWidth: "900px",
         margin: "0 auto",
         padding: "30px 20px",
         fontFamily: "Arial",
-        direction: "rtl",
       }}
     >
       {/* Back */}
@@ -464,3 +464,4 @@ function StudentLessonDetail() {
 }
 
 export default StudentLessonDetail;
+

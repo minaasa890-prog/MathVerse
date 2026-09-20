@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
-const API_URL = "http://192.168.43.167:4000";
+import { API_URL } from "../../api/config";
 
 export default function TeacherClassDetail() {
   const navigate = useNavigate();
@@ -55,30 +54,18 @@ export default function TeacherClassDetail() {
           rankingResponse,
           analysisResponse,
         ] = await Promise.all([
-          fetch(
-            `${API_URL}/teacher/class/${classroomId}/students`,
-            {
-              headers,
-            },
-          ),
-          fetch(
-            `${API_URL}/teacher/class/${classroomId}/results`,
-            {
-              headers,
-            },
-          ),
-          fetch(
-            `${API_URL}/teacher/class/${classroomId}/ranking`,
-            {
-              headers,
-            },
-          ),
-          fetch(
-            `${API_URL}/teacher/class/${classroomId}/ai-analysis`,
-            {
-              headers,
-            },
-          ),
+          fetch(`${API_URL}/teacher/class/${classroomId}/students`, {
+            headers,
+          }),
+          fetch(`${API_URL}/teacher/class/${classroomId}/results`, {
+            headers,
+          }),
+          fetch(`${API_URL}/teacher/class/${classroomId}/ranking`, {
+            headers,
+          }),
+          fetch(`${API_URL}/teacher/class/${classroomId}/ai-analysis`, {
+            headers,
+          }),
         ]);
 
         const studentsData = await studentsResponse.json();
@@ -131,11 +118,10 @@ export default function TeacherClassDetail() {
                 ? details.students
                 : [];
 
-              const participatedStudents =
-                examStudents.filter(
-                  (student: any) =>
-                    student?.status === "PARTICIPATED",
-                );
+              const participatedStudents = examStudents.filter(
+                (student: any) =>
+                  student?.status === "PARTICIPATED",
+              );
 
               const studentsWithScores =
                 participatedStudents.length > 0

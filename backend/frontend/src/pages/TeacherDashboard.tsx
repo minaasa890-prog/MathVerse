@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { API_URL } from "../api/config";
 
 export default function TeacherClassDetail() {
   const { id } = useParams();
@@ -11,25 +12,19 @@ export default function TeacherClassDetail() {
   useEffect(() => {
     if (!id) return;
 
-    fetch(
-      `http://192.168.43.167:4000/teacher/class/${id}/students`
-    )
+    fetch(`${API_URL}/teacher/class/${id}/students`)
       .then((res) => res.json())
       .then((data) => {
         setStudents(data);
       });
 
-    fetch(
-      `http://192.168.43.167:4000/teacher/class/${id}/results`
-    )
+    fetch(`${API_URL}/teacher/class/${id}/results`)
       .then((res) => res.json())
       .then((data) => {
         setResults(data);
       });
 
-    fetch(
-      `http://192.168.43.167:4000/teacher/class/${id}/ranking`
-    )
+    fetch(`${API_URL}/teacher/class/${id}/ranking`)
       .then((res) => res.json())
       .then((data) => {
         setRanking(data);
