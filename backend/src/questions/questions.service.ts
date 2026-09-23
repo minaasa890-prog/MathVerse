@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class QuestionsService {
-
   constructor(
     private prisma: PrismaService,
   ) {}
@@ -13,9 +12,7 @@ export class QuestionsService {
   // =====================================
 
   async create(data: any) {
-
     return this.prisma.question.create({
-
       data: {
         title: data.title,
         description: data.description,
@@ -23,24 +20,33 @@ export class QuestionsService {
         subject: data.subject ?? 'Math',
         chapter: data.chapter,
 
-        difficulty: data.difficulty ?? 1,
+        // Convert difficulty to Int for Prisma
+        difficulty: Number(data.difficulty ?? 1),
 
-        questionType: data.questionType ?? 'MULTIPLE_CHOICE',
+        // Existing question type support
+        questionType:
+          data.questionType ?? 'MULTIPLE_CHOICE',
 
+        // Existing multiple-choice fields
         optionA: data.optionA,
         optionB: data.optionB,
         optionC: data.optionC,
         optionD: data.optionD,
 
+        // Existing answer
         correctAnswer: data.correctAnswer,
 
-        score: data.score ?? 1,
+        // Existing scoring
+        score: Number(data.score ?? 1),
 
-        creatorId: data.creatorId,
+        // Existing solution / explanation
+        solution: data.solution ?? null,
+        explanation: data.explanation ?? null,
+
+        // Existing creator
+        creatorId: Number(data.creatorId),
       },
-
     });
-
   }
 
   // =====================================
@@ -48,15 +54,11 @@ export class QuestionsService {
   // =====================================
 
   async findAll() {
-
     return this.prisma.question.findMany({
-
       orderBy: {
         createdAt: 'desc',
       },
-
     });
-
   }
 
   // =====================================
@@ -64,15 +66,11 @@ export class QuestionsService {
   // =====================================
 
   async findOne(id: number) {
-
     return this.prisma.question.findUnique({
-
       where: {
         id,
       },
-
     });
-
   }
 
   // =====================================
@@ -80,15 +78,10 @@ export class QuestionsService {
   // =====================================
 
   async remove(id: number) {
-
     return this.prisma.question.delete({
-
       where: {
         id,
       },
-
     });
-
   }
-
 }
