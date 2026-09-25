@@ -87,6 +87,8 @@ model Question {
   solution      String?
   explanation   String?
 
+  isInQuestionBank Boolean @default(true)
+
   attempts         Attempt[]
   examQuestions    ExamQuestion[]
   practiceAnswers  PracticeAnswer[]

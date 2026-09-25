@@ -4,22 +4,17 @@ import {
   Get,
   Post,
   Param,
-  Delete
+  Delete,
+  Patch,
 } from '@nestjs/common';
 
 import { QuestionsService } from './questions.service';
 
-
-
 @Controller('questions')
 export class QuestionsController {
-
-
   constructor(
-    private questionsService: QuestionsService
-  ){}
-
-
+    private questionsService: QuestionsService,
+  ) {}
 
   // ===============================
   // CREATE QUESTION
@@ -27,27 +22,19 @@ export class QuestionsController {
 
   @Post()
   create(
-    @Body() body:any
-  ){
-
+    @Body() body: any,
+  ) {
     return this.questionsService.create(body);
-
   }
 
-
-
   // ===============================
-  // ALL QUESTIONS
+  // ALL QUESTIONS IN QUESTION BANK
   // ===============================
 
   @Get()
-  findAll(){
-
+  findAll() {
     return this.questionsService.findAll();
-
   }
-
-
 
   // ===============================
   // SINGLE QUESTION
@@ -55,16 +42,38 @@ export class QuestionsController {
 
   @Get(':id')
   findOne(
-    @Param('id') id:string
-  ){
-
+    @Param('id') id: string,
+  ) {
     return this.questionsService.findOne(
-      Number(id)
+      Number(id),
     );
-
   }
 
+  // ===============================
+  // SAVE QUESTION TO QUESTION BANK
+  // ===============================
 
+  @Patch(':id/save-to-bank')
+  saveToQuestionBank(
+    @Param('id') id: string,
+  ) {
+    return this.questionsService.saveToQuestionBank(
+      Number(id),
+    );
+  }
+
+  // ===============================
+  // REMOVE FROM QUESTION BANK
+  // ===============================
+
+  @Patch(':id/remove-from-bank')
+  removeFromQuestionBank(
+    @Param('id') id: string,
+  ) {
+    return this.questionsService.removeFromQuestionBank(
+      Number(id),
+    );
+  }
 
   // ===============================
   // DELETE
@@ -72,14 +81,10 @@ export class QuestionsController {
 
   @Delete(':id')
   remove(
-    @Param('id') id:string
-  ){
-
+    @Param('id') id: string,
+  ) {
     return this.questionsService.remove(
-      Number(id)
+      Number(id),
     );
-
   }
-
-
 }

@@ -4,19 +4,59 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { DeepSeekService } from '../ai-question/deepseek.service';
 
 @Injectable()
 export class AiExamService {
   constructor(
     private prisma: PrismaService,
+    private deepSeekService: DeepSeekService,
   ) {}
 
+  /**
+   * Generate AI questions using the existing DeepSeek service
+   * and save them into the Question table.
+   *
+   * Supports:
+   * - single mode: existing chapter-based generation
+   * - mixed mode: generation based on multiple topics
+   */
   async generate(data: any) {
     const subject =
       data.subject || 'Math';
 
+    const requestedMode =
+      data.mode === 'mixed'
+        ? 'mixed'
+        : 'single';
+
+    const rawTopics = Array.isArray(data.topics)
+      ? data.topics
+      : [];
+
+    const topics = rawTopics
+      .map((topic: any) =>
+        String(topic).trim(),
+      )
+      .filter(
+        (topic: string) =>
+          topic.length > 0,
+      );
+
+    /*
+     * Mixed mode is valid only when at least
+     * two real topics are provided.
+     */
+    const effectiveMode =
+      requestedMode === 'mixed' &&
+      topics.length >= 2
+        ? 'mixed'
+        : 'single';
+
     const chapter =
-      data.chapter || 'General';
+      effectiveMode === 'mixed'
+        ? topics.join(' + ')
+        : data.chapter || 'General';
 
     let difficulty = 2;
 
@@ -32,41 +72,63 @@ export class AiExamService {
       difficulty = data.difficulty;
     }
 
-    const count =
-      Number(
-        data.count ||
-        data.questionCount ||
-        5,
-      );
+    if (difficulty < 1 || difficulty > 3) {
+      difficulty = 2;
+    }
+
+    const count = Math.max(
+      1,
+      Math.min(
+        Number(
+          data.count ||
+          data.questionCount ||
+          5,
+        ),
+        30,
+      ),
+    );
+
+    const creatorId =
+      Number(data.teacherId) || 1;
 
     const questions = [];
 
     for (
-      let i = 1;
-      i <= count;
+      let i = 0;
+      i < count;
       i++
     ) {
-      const number1 =
-        Math.floor(
-          Math.random() * 20,
-        ) + 1;
+      const aiQuestion =
+        await this.deepSeekService.generateQuestion(
+          subject,
+          chapter,
+          difficulty,
+          effectiveMode,
+          topics,
+        );
 
-      const number2 =
-        Math.floor(
-          Math.random() * 20,
-        ) + 1;
-
-      const answer =
-        number1 + number2;
+      if (
+        !aiQuestion ||
+        !aiQuestion.title ||
+        !aiQuestion.correctAnswer
+      ) {
+        throw new Error(
+          `DeepSeek سؤال معتبر برای سؤال شماره ${i + 1} تولید نکرد.`,
+        );
+      }
 
       const question =
         await this.prisma.question.create({
           data: {
             title:
-              `حاصل ${number1} + ${number2} چند است؟`,
+              String(aiQuestion.title),
 
             description:
-              'سؤال تولید شده توسط AI Exam Generator',
+              String(
+                aiQuestion.explanation ||
+                aiQuestion.solution ||
+                'سؤال تولیدشده توسط هوش مصنوعی DeepSeek',
+              ),
 
             subject,
 
@@ -74,28 +136,53 @@ export class AiExamService {
 
             difficulty,
 
-            creatorId:
-              Number(data.teacherId) || 1,
+            creatorId,
 
             questionType:
               'MULTIPLE_CHOICE',
 
+              isInQuestionBank: false,
+
             correctAnswer:
-              String(answer),
+              String(
+                aiQuestion.correctAnswer,
+              ),
 
             optionA:
-              String(answer - 2),
+              String(
+                aiQuestion.optionA || '',
+              ),
 
             optionB:
-              String(answer),
+              String(
+                aiQuestion.optionB || '',
+              ),
 
             optionC:
-              String(answer + 2),
+              String(
+                aiQuestion.optionC || '',
+              ),
 
             optionD:
-              String(answer + 5),
+              String(
+                aiQuestion.optionD || '',
+              ),
 
             score: 10,
+
+            explanation:
+              aiQuestion.explanation
+                ? String(
+                    aiQuestion.explanation,
+                  )
+                : undefined,
+
+            solution:
+              aiQuestion.solution
+                ? String(
+                    aiQuestion.solution,
+                  )
+                : undefined,
           },
         });
 
@@ -104,9 +191,20 @@ export class AiExamService {
 
     return {
       questions,
+
+      mode:
+        effectiveMode,
+
+      topics:
+        effectiveMode === 'mixed'
+          ? topics
+          : [],
     };
   }
 
+  /**
+   * Generate AI questions and create a complete exam.
+   */
   async generateExam(
     data: any,
   ) {
@@ -118,10 +216,11 @@ export class AiExamService {
         data: {
           title:
             data.title ||
-            'AI Generated Exam',
+            'آزمون تولیدشده با هوش مصنوعی',
 
           description:
-            'Generated automatically by AI',
+            data.description ||
+            'آزمون تولیدشده با استفاده از هوش مصنوعی DeepSeek',
 
           duration:
             Number(data.duration) || 30,
@@ -142,6 +241,7 @@ export class AiExamService {
                       id: q.id,
                     },
                   },
+
                   order: index,
                 }),
               ),
@@ -153,6 +253,7 @@ export class AiExamService {
             include: {
               question: true,
             },
+
             orderBy: {
               order: 'asc',
             },
@@ -162,7 +263,7 @@ export class AiExamService {
 
     return {
       message:
-        'AI Exam Created Successfully',
+        'آزمون با موفقیت توسط هوش مصنوعی ساخته شد',
 
       examId:
         exam.id,
@@ -176,6 +277,12 @@ export class AiExamService {
       totalQuestions:
         exam.questions.length,
 
+      mode:
+        generated.mode,
+
+      topics:
+        generated.topics,
+
       questions:
         exam.questions.map(
           (item) =>
@@ -184,6 +291,10 @@ export class AiExamService {
     };
   }
 
+  /**
+   * Generate AI questions and add them
+   * to an existing DRAFT exam.
+   */
   async addAiQuestionsToExam(
     examId: number,
     data: any,
@@ -214,6 +325,7 @@ export class AiExamService {
     const generated =
       await this.generate({
         ...data,
+
         count:
           Number(data.count) || 3,
       });
@@ -271,6 +383,12 @@ export class AiExamService {
       addedQuestions:
         createdQuestions.length,
 
+      mode:
+        generated.mode,
+
+      topics:
+        generated.topics,
+
       questions:
         createdQuestions.map(
           (item) =>
@@ -279,6 +397,10 @@ export class AiExamService {
     };
   }
 
+  /**
+   * Generate an adaptive AI exam
+   * according to the student's previous accuracy.
+   */
   async adaptiveExam(
     studentId: number,
     data: any,
@@ -303,70 +425,24 @@ export class AiExamService {
 
     if (total > 0) {
       accuracy =
-        Math.round(
-          (correct / total) * 100,
-        );
+        correct / total;
     }
 
     let difficulty = 2;
-    let level = 'Beginner';
 
-    if (accuracy >= 80) {
+    if (accuracy >= 0.8) {
       difficulty = 3;
-      level = 'Advanced';
-    } else if (
-      accuracy >= 50
-    ) {
-      difficulty = 2;
-      level = 'Intermediate';
+    } else if (accuracy < 0.5) {
+      difficulty = 1;
     }
 
-    const exam =
-      await this.generateExam({
-        teacherId:
-          data.teacherId || 1,
+    return this.generateExam({
+      ...data,
 
-        classroomId:
-          data.classroomId || 1,
-
-        title:
-          `Adaptive AI Exam - ${level}`,
-
-        subject:
-          data.subject || 'Math',
-
-        chapter:
-          data.chapter || 'General',
-
-        difficulty,
-
-        count:
-          data.count || 5,
-
-        duration:
-          data.duration || 30,
-      });
-
-    return {
+      difficulty,
+      count:
+        Number(data.count) || 5,
       studentId,
-
-      previousAccuracy:
-        accuracy,
-
-      detectedLevel:
-        level,
-
-      generatedDifficulty:
-        difficulty,
-
-      examId:
-        exam.examId,
-
-      totalQuestions:
-        exam.totalQuestions,
-
-      questions:
-        exam.questions,
-    };
+    });
   }
 }

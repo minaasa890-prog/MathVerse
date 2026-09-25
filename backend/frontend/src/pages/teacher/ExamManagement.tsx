@@ -1,39 +1,79 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import api from "../../api/axios";
+
+interface Exam {
+  id: number;
+  title: string;
+  description?: string;
+  status?: string;
+  duration?: number;
+  classroomId?: number;
+  questionCount?: number;
+  questionsCount?: number;
+  questions?: any[];
+}
 
 export default function ExamManagement() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [exams, setExams] = useState<any[]>([]);
+  const [searchParams, setSearchParams] =
+    useSearchParams();
+
+  const [exams, setExams] = useState<Exam[]>([]);
   const [questions, setQuestions] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
-  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [questionsLoading, setQuestionsLoading] =
+    useState(false);
 
-  const [selectedExam, setSelectedExam] = useState<any>(null);
-  const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const [selectedExam, setSelectedExam] =
+    useState<Exam | null>(null);
 
-  const [showAiModal, setShowAiModal] = useState(false);
-  const [aiExam, setAiExam] = useState<any>(null);
-  const [aiChapter, setAiChapter] = useState("Algebra");
-  const [aiDifficulty, setAiDifficulty] = useState(2);
-  const [aiCount, setAiCount] = useState(3);
-  const [aiLoading, setAiLoading] = useState(false);
+  const [showQuestionModal, setShowQuestionModal] =
+    useState(false);
 
-  /*
-   * =========================
-   * Create Exam
-   * =========================
-   */
+  const [showAiModal, setShowAiModal] =
+    useState(false);
+
+  const [aiExam, setAiExam] =
+    useState<Exam | null>(null);
+
+  const [aiChapter, setAiChapter] =
+    useState("Algebra");
+
+  const [aiDifficulty, setAiDifficulty] =
+    useState(2);
+
+  const [aiCount, setAiCount] =
+    useState(3);
+
+  const [aiLoading, setAiLoading] =
+    useState(false);
+
+  // ==========================================
+  // AI GENERATED QUESTIONS
+  // ==========================================
+
+  const [aiGeneratedQuestions, setAiGeneratedQuestions] =
+    useState<any[]>([]);
 
   const [showCreateExamModal, setShowCreateExamModal] =
     useState(false);
 
-  const [newExamTitle, setNewExamTitle] = useState("");
-  const [newExamDescription, setNewExamDescription] = useState("");
-  const [newExamDuration, setNewExamDuration] = useState(20);
+  const [newExamTitle, setNewExamTitle] =
+    useState("");
+
+  const [newExamDescription, setNewExamDescription] =
+    useState("");
+
+  const [newExamDuration, setNewExamDuration] =
+    useState(20);
 
   const [createExamLoading, setCreateExamLoading] =
     useState(false);
@@ -46,12 +86,6 @@ export default function ExamManagement() {
 
   const [classroomsLoading, setClassroomsLoading] =
     useState(false);
-
-  /*
-   * =========================
-   * Manual Question Creation
-   * =========================
-   */
 
   const [showNewQuestionForm, setShowNewQuestionForm] =
     useState(false);
@@ -71,10 +105,17 @@ export default function ExamManagement() {
   const [newQuestionType, setNewQuestionType] =
     useState("MULTIPLE_CHOICE");
 
-  const [newOptionA, setNewOptionA] = useState("");
-  const [newOptionB, setNewOptionB] = useState("");
-  const [newOptionC, setNewOptionC] = useState("");
-  const [newOptionD, setNewOptionD] = useState("");
+  const [newOptionA, setNewOptionA] =
+    useState("");
+
+  const [newOptionB, setNewOptionB] =
+    useState("");
+
+  const [newOptionC, setNewOptionC] =
+    useState("");
+
+  const [newOptionD, setNewOptionD] =
+    useState("");
 
   const [newCorrectAnswer, setNewCorrectAnswer] =
     useState("A");
@@ -82,18 +123,12 @@ export default function ExamManagement() {
   const [createQuestionLoading, setCreateQuestionLoading] =
     useState(false);
 
-  /*
-   * =========================
-   * Load Exams
-   * =========================
-   */
-
   async function loadExams() {
     try {
       setLoading(true);
 
       const response = await api.get(
-        `/exams/classroom/${id}`
+        `/exams/classroom/${id}`,
       );
 
       setExams(response.data || []);
@@ -104,12 +139,6 @@ export default function ExamManagement() {
       setLoading(false);
     }
   }
-
-  /*
-   * =========================
-   * Load Question Bank
-   * =========================
-   */
 
   async function loadQuestions() {
     try {
@@ -126,34 +155,23 @@ export default function ExamManagement() {
     }
   }
 
-  /*
-   * =========================
-   * Load Teacher Classrooms
-   * =========================
-   */
-
   async function loadTeacherClassrooms() {
     try {
       setClassroomsLoading(true);
 
       const response = await api.get(
-        `/teacher/dashboard/37`
+        "/teacher/dashboard/37",
       );
 
       const dashboardData = response.data;
 
-      const classrooms =
-        Array.isArray(dashboardData)
-          ? dashboardData
-          : dashboardData?.classrooms ||
-            dashboardData?.classes ||
-            [];
+      const classrooms = Array.isArray(dashboardData)
+        ? dashboardData
+        : dashboardData?.classrooms ||
+          dashboardData?.classes ||
+          [];
 
       setTeacherClassrooms(classrooms);
-
-      /*
-       * کلاس فعلی صفحه را به صورت پیش‌فرض انتخاب می‌کنیم.
-       */
 
       const currentId = Number(id);
 
@@ -161,7 +179,7 @@ export default function ExamManagement() {
         currentId &&
         classrooms.some(
           (classroom: any) =>
-            Number(classroom.id) === currentId
+            Number(classroom.id) === currentId,
         )
       ) {
         setSelectedClassroomIds([currentId]);
@@ -169,13 +187,8 @@ export default function ExamManagement() {
     } catch (error) {
       console.error(
         "LOAD TEACHER CLASSROOMS ERROR:",
-        error
+        error,
       );
-
-      /*
-       * اگر API داشبورد ساختار متفاوتی داشت،
-       * حداقل کلاس فعلی صفحه را داریم.
-       */
 
       const currentId = Number(id);
 
@@ -196,31 +209,72 @@ export default function ExamManagement() {
   }, [id]);
 
   /*
-   * =========================
-   * Classroom Selection
-   * =========================
+   * =====================================================
+   * OPEN QUESTION MODAL FROM EXAM PREVIEW
+   * =====================================================
+   *
+   * Example:
+   * /teacher/class/2/exams?addQuestion=20
+   *
+   * After exams are loaded, find the requested exam
+   * and automatically open the existing question modal.
    */
+  useEffect(() => {
+    const addQuestionExamId = Number(
+      searchParams.get("addQuestion"),
+    );
 
-  function toggleClassroom(classroomId: number) {
+    if (
+      !addQuestionExamId ||
+      exams.length === 0
+    ) {
+      return;
+    }
+
+    const exam = exams.find(
+      (item) =>
+        Number(item.id) === addQuestionExamId,
+    );
+
+    if (!exam) {
+      return;
+    }
+
+    if (exam.status !== "DRAFT") {
+      alert(
+        "آزمون منتشر شده و امکان تغییر سؤال‌های آن وجود ندارد.",
+      );
+    } else {
+      setSelectedExam(exam);
+      setShowQuestionModal(true);
+      setShowNewQuestionForm(false);
+    }
+
+    setSearchParams(
+      {},
+      {
+        replace: true,
+      },
+    );
+  }, [
+    exams,
+    searchParams,
+    setSearchParams,
+  ]);
+
+  function toggleClassroom(
+    classroomId: number,
+  ) {
     setSelectedClassroomIds((previous) => {
       if (previous.includes(classroomId)) {
         return previous.filter(
-          (item) => item !== classroomId
+          (item) => item !== classroomId,
         );
       }
 
-      return [
-        ...previous,
-        classroomId,
-      ];
+      return [...previous, classroomId];
     });
   }
-
-  /*
-   * =========================
-   * Create Multi-Class Exam
-   * =========================
-   */
 
   async function createDraftExam() {
     if (!newExamTitle.trim()) {
@@ -240,67 +294,47 @@ export default function ExamManagement() {
         "/teacher/exam/create",
         {
           teacherId: 37,
-
-          classroomIds:
-            selectedClassroomIds,
-
-          title:
-            newExamTitle.trim(),
-
+          classroomIds: selectedClassroomIds,
+          title: newExamTitle.trim(),
           description:
             newExamDescription.trim(),
-
-          duration:
-            Number(newExamDuration),
-
+          duration: Number(newExamDuration),
           questionCount: 10,
-        }
+        },
       );
 
-      console.log(
-        "MULTI CLASS EXAM CREATED:",
-        response.data
-      );
-
-      if (
-        response.data?.success === false
-      ) {
+      if (response.data?.success === false) {
         alert(
           response.data?.message ||
-            "خطا در ساخت آزمون"
+            "خطا در ساخت آزمون",
         );
-
         return;
       }
 
-      const createdCount =
-        Number(
-          response.data?.classroomCount ||
-            response.data?.exams?.length ||
-            selectedClassroomIds.length
-        );
+      const createdCount = Number(
+        response.data?.classroomCount ||
+          response.data?.exams?.length ||
+          selectedClassroomIds.length,
+      );
 
       alert(
         createdCount > 1
           ? `آزمون با موفقیت برای ${createdCount} کلاس ساخته شد`
-          : "آزمون با موفقیت ساخته شد"
+          : "آزمون با موفقیت ساخته شد",
       );
 
       setNewExamTitle("");
       setNewExamDescription("");
       setNewExamDuration(20);
 
-      setSelectedClassroomIds([
-        Number(id),
-      ]);
-
+      setSelectedClassroomIds([Number(id)]);
       setShowCreateExamModal(false);
 
       await loadExams();
     } catch (error: any) {
       console.error(
         "CREATE EXAM ERROR:",
-        error
+        error,
       );
 
       const message =
@@ -313,18 +347,11 @@ export default function ExamManagement() {
     }
   }
 
-  /*
-   * =========================
-   * Question Modal
-   * =========================
-   */
-
-  function openQuestionModal(exam: any) {
+  function openQuestionModal(exam: Exam) {
     if (exam.status !== "DRAFT") {
       alert(
-        "آزمون منتشر شده و امکان تغییر سؤال‌های آن وجود ندارد."
+        "آزمون منتشر شده و امکان تغییر سؤال‌های آن وجود ندارد.",
       );
-
       return;
     }
 
@@ -340,19 +367,13 @@ export default function ExamManagement() {
     resetNewQuestionForm();
   }
 
-  /*
-   * =========================
-   * Add Existing Question
-   * =========================
-   */
-
   async function addQuestionToExam(
     examId: number,
-    questionId: number
+    questionId: number,
   ) {
     try {
       await api.post(
-        `/exams/${examId}/question/${questionId}`
+        `/exams/${examId}/question/${questionId}`,
       );
 
       alert("سؤال به آزمون اضافه شد");
@@ -362,7 +383,7 @@ export default function ExamManagement() {
     } catch (error: any) {
       console.error(
         "ADD QUESTION ERROR:",
-        error
+        error,
       );
 
       const message =
@@ -373,19 +394,13 @@ export default function ExamManagement() {
     }
   }
 
-  /*
-   * =========================
-   * Create New Manual Question
-   * =========================
-   */
-
   function resetNewQuestionForm() {
     setNewQuestionTitle("");
     setNewQuestionDescription("");
     setNewQuestionChapter("Algebra");
     setNewQuestionDifficulty(1);
     setNewQuestionType(
-      "MULTIPLE_CHOICE"
+      "MULTIPLE_CHOICE",
     );
 
     setNewOptionA("");
@@ -417,10 +432,7 @@ export default function ExamManagement() {
         !newOptionC.trim() ||
         !newOptionD.trim()
       ) {
-        alert(
-          "هر چهار گزینه را وارد کنید"
-        );
-
+        alert("هر چهار گزینه را وارد کنید");
         return;
       }
     }
@@ -431,60 +443,44 @@ export default function ExamManagement() {
       const response = await api.post(
         "/questions",
         {
-          title:
-            newQuestionTitle,
-
+          title: newQuestionTitle,
           description:
             newQuestionDescription ||
             "سؤال ساخته شده توسط معلم",
-
           subject: "Math",
-
-          chapter:
-            newQuestionChapter,
-
-          difficulty:
-            Number(
-              newQuestionDifficulty
-            ),
-
+          chapter: newQuestionChapter,
+          difficulty: Number(
+            newQuestionDifficulty,
+          ),
           creatorId: 37,
-
-          questionType:
-            newQuestionType,
-
+          questionType: newQuestionType,
           correctAnswer:
             newQuestionType ===
             "MULTIPLE_CHOICE"
               ? newCorrectAnswer
               : newQuestionTitle,
-
           optionA:
             newQuestionType ===
             "MULTIPLE_CHOICE"
               ? newOptionA
               : null,
-
           optionB:
             newQuestionType ===
             "MULTIPLE_CHOICE"
               ? newOptionB
               : null,
-
           optionC:
             newQuestionType ===
             "MULTIPLE_CHOICE"
               ? newOptionC
               : null,
-
           optionD:
             newQuestionType ===
             "MULTIPLE_CHOICE"
               ? newOptionD
               : null,
-
           score: 10,
-        }
+        },
       );
 
       const createdQuestion =
@@ -492,16 +488,16 @@ export default function ExamManagement() {
 
       if (!createdQuestion?.id) {
         throw new Error(
-          "شناسه سؤال ساخته شده دریافت نشد"
+          "شناسه سؤال ساخته شده دریافت نشد",
         );
       }
 
       await api.post(
-        `/exams/${selectedExam.id}/question/${createdQuestion.id}`
+        `/exams/${selectedExam.id}/question/${createdQuestion.id}`,
       );
 
       alert(
-        "سؤال جدید ساخته شد و به آزمون اضافه شد"
+        "سؤال جدید ساخته شد و به آزمون اضافه شد",
       );
 
       resetNewQuestionForm();
@@ -512,7 +508,7 @@ export default function ExamManagement() {
     } catch (error: any) {
       console.error(
         "CREATE MANUAL QUESTION ERROR:",
-        error
+        error,
       );
 
       const message =
@@ -522,24 +518,16 @@ export default function ExamManagement() {
 
       alert(message);
     } finally {
-      setCreateQuestionLoading(
-        false
-      );
+      setCreateQuestionLoading(false);
     }
   }
 
-  /*
-   * =========================
-   * Publish Exam
-   * =========================
-   */
-
   async function publishExam(
-    examId: number
+    examId: number,
   ) {
     const confirmPublish =
       window.confirm(
-        "آیا مطمئن هستید که می‌خواهید این آزمون را منتشر کنید؟\nبعد از انتشار امکان تغییر سؤال‌ها محدود می‌شود."
+        "آیا مطمئن هستید که می‌خواهید این آزمون را منتشر کنید؟\nبعد از انتشار امکان تغییر سؤال‌ها محدود می‌شود.",
       );
 
     if (!confirmPublish) {
@@ -548,18 +536,18 @@ export default function ExamManagement() {
 
     try {
       await api.post(
-        `/exams/${examId}/publish`
+        `/exams/${examId}/publish`,
       );
 
       alert(
-        "آزمون با موفقیت منتشر شد"
+        "آزمون با موفقیت منتشر شد",
       );
 
       await loadExams();
     } catch (error: any) {
       console.error(
         "PUBLISH EXAM ERROR:",
-        error
+        error,
       );
 
       const message =
@@ -570,35 +558,28 @@ export default function ExamManagement() {
     }
   }
 
-  /*
-   * =========================
-   * AI Modal
-   * =========================
-   */
-
-  function openAiModal(exam: any) {
+  function openAiModal(exam: Exam) {
     if (exam.status !== "DRAFT") {
       alert(
-        "فقط به آزمون DRAFT می‌توان سؤال AI اضافه کرد."
+        "فقط به آزمون DRAFT می‌توان سؤال AI اضافه کرد.",
       );
-
       return;
     }
 
     setAiExam(exam);
+    setAiGeneratedQuestions([]);
     setShowAiModal(true);
   }
 
   function closeAiModal() {
     setShowAiModal(false);
     setAiExam(null);
+    setAiGeneratedQuestions([]);
   }
 
-  /*
-   * =========================
-   * Add AI Questions
-   * =========================
-   */
+  // ==========================================
+  // ADD AI QUESTIONS TO EXAM
+  // ==========================================
 
   async function addAiQuestionsToExam() {
     if (!aiExam) {
@@ -608,30 +589,40 @@ export default function ExamManagement() {
     try {
       setAiLoading(true);
 
-      await api.post(
+      const response = await api.post(
         `/ai-exam/add-to-exam/${aiExam.id}`,
         {
           subject: "Math",
           chapter: aiChapter,
-          difficulty:
-            Number(aiDifficulty),
+          difficulty: Number(
+            aiDifficulty,
+          ),
           count: Number(aiCount),
           teacherId: 37,
-        }
+        },
+      );
+
+      const generatedQuestions =
+        Array.isArray(response.data?.questions)
+          ? response.data.questions
+          : [];
+
+      setAiGeneratedQuestions(
+        generatedQuestions,
       );
 
       alert(
-        "سؤال‌های AI با موفقیت به آزمون اضافه شدند"
+        generatedQuestions.length > 0
+          ? `${generatedQuestions.length} سؤال AI به آزمون اضافه شد`
+          : "سؤال‌های AI به آزمون اضافه شدند",
       );
-
-      closeAiModal();
 
       await loadExams();
       await loadQuestions();
     } catch (error: any) {
       console.error(
         "ADD AI QUESTIONS ERROR:",
-        error
+        error,
       );
 
       const message =
@@ -644,14 +635,52 @@ export default function ExamManagement() {
     }
   }
 
-  /*
-   * =========================
-   * Helpers
-   * =========================
-   */
+  // ==========================================
+  // SAVE AI QUESTION TO QUESTION BANK
+  // ==========================================
+
+  async function saveAiQuestionToBank(
+    questionId: number,
+  ) {
+    try {
+      await api.patch(
+        `/questions/${questionId}/save-to-bank`,
+      );
+
+      setAiGeneratedQuestions(
+        (previous) =>
+          previous.map((question) =>
+            Number(question.id) ===
+            Number(questionId)
+              ? {
+                  ...question,
+                  isInQuestionBank: true,
+                }
+              : question,
+          ),
+      );
+
+      await loadQuestions();
+
+      alert(
+        "سؤال با موفقیت در بانک سؤال ذخیره شد",
+      );
+    } catch (error: any) {
+      console.error(
+        "SAVE AI QUESTION TO BANK ERROR:",
+        error,
+      );
+
+      const message =
+        error?.response?.data?.message ||
+        "خطا در ذخیره سؤال در بانک";
+
+      alert(message);
+    }
+  }
 
   function getExamQuestionCount(
-    exam: any
+    exam: Exam,
   ) {
     if (
       Array.isArray(exam?.questions)
@@ -666,22 +695,8 @@ export default function ExamManagement() {
     );
   }
 
-  function getStatusText(
-    status: string
-  ) {
-    if (status === "PUBLISHED") {
-      return "منتشر شده";
-    }
-
-    if (status === "DRAFT") {
-      return "پیش‌نویس";
-    }
-
-    return status || "نامشخص";
-  }
-
   function getClassroomName(
-    classroom: any
+    classroom: any,
   ) {
     return (
       classroom?.name ||
@@ -690,266 +705,1131 @@ export default function ExamManagement() {
     );
   }
 
-  /*
-   * =========================
-   * Render
-   * =========================
-   */
-
   return (
     <div
       dir="rtl"
-      className="min-h-screen bg-gray-100 p-6"
+      style={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f8fafc 100%)",
+        padding:
+          "28px 20px 50px",
+        color: "#0f172a",
+      }}
     >
-      {/* Header */}
+      <div
+        style={{
+          maxWidth: "1150px",
+          margin: "0 auto",
+        }}
+      >
+        {/* HERO */}
+        <div
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            background:
+              "linear-gradient(135deg, #312e81 0%, #4f46e5 55%, #6366f1 100%)",
+            borderRadius: "24px",
+            padding:
+              "28px 30px",
+            color: "#fff",
+            marginBottom: "24px",
+            boxShadow:
+              "0 15px 40px rgba(79, 70, 229, 0.20)",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              width: "220px",
+              height: "220px",
+              borderRadius: "50%",
+              background:
+                "rgba(255,255,255,0.07)",
+              left: "-80px",
+              top: "-120px",
+            }}
+          />
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">
-            📚 مدیریت آزمون‌ها
-          </h1>
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              display: "flex",
+              justifyContent:
+                "space-between",
+              alignItems: "center",
+              gap: "20px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: "13px",
+                  opacity: 0.8,
+                  marginBottom:
+                    "7px",
+                }}
+              >
+                پنل مدیریت آموزشی
+              </div>
 
-          <p className="text-gray-500 mt-2">
-            مدیریت آزمون‌های کلاس و سؤال‌های آن‌ها
-          </p>
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: "29px",
+                  fontWeight: 800,
+                }}
+              >
+                📝 مدیریت آزمون‌ها
+              </h1>
+
+              <p
+                style={{
+                  margin:
+                    "9px 0 0",
+                  opacity: 0.9,
+                  fontSize: "14px",
+                }}
+              >
+                ساخت، مدیریت سؤال‌ها و انتشار آزمون‌های کلاس
+              </p>
+            </div>
+
+            <button
+              onClick={() =>
+                navigate(
+                  `/teacher/class/${id}`,
+                )
+              }
+              style={{
+                border:
+                  "1px solid rgba(255,255,255,0.25)",
+                background:
+                  "rgba(255,255,255,0.12)",
+                color: "#fff",
+                borderRadius:
+                  "12px",
+                padding:
+                  "11px 17px",
+                cursor:
+                  "pointer",
+                fontWeight: 700,
+                backdropFilter:
+                  "blur(8px)",
+              }}
+            >
+              ← بازگشت به کلاس
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        {/* QUICK ACTIONS */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: "16px",
+            marginBottom: "30px",
+          }}
+        >
+          {/* CREATE EXAM */}
           <button
             onClick={() =>
               setShowCreateExamModal(
-                true
+                true,
               )
             }
-            className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700"
+            style={{
+              textAlign: "right",
+              border:
+                "1px solid #c7d2fe",
+              borderRadius:
+                "18px",
+              padding: "20px",
+              background:
+                "linear-gradient(135deg, #eef2ff, #ffffff)",
+              cursor: "pointer",
+              boxShadow:
+                "0 8px 25px rgba(15,23,42,0.05)",
+            }}
           >
-            ➕ ساخت آزمون
+            <div
+              style={{
+                width: "46px",
+                height: "46px",
+                borderRadius:
+                  "14px",
+                display: "flex",
+                alignItems:
+                  "center",
+                justifyContent:
+                  "center",
+                background:
+                  "#e0e7ff",
+                fontSize: "23px",
+                marginBottom:
+                  "12px",
+              }}
+            >
+              ➕
+            </div>
+
+            <div
+              style={{
+                fontSize: "16px",
+                fontWeight: 800,
+                color: "#312e81",
+              }}
+            >
+              ساخت آزمون جدید
+            </div>
+
+            <div
+              style={{
+                fontSize: "13px",
+                color: "#64748b",
+                marginTop: "5px",
+              }}
+            >
+              ایجاد آزمون برای یک یا چند کلاس
+            </div>
           </button>
 
+          {/* AI EXAM */}
           <button
             onClick={() =>
               navigate(
-                `/teacher/class/${id}/create-question`
+                `/teacher/class/${id}/create-exam`,
               )
             }
-            className="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700"
+            style={{
+              textAlign: "right",
+              border:
+                "1px solid #ddd6fe",
+              borderRadius:
+                "18px",
+              padding: "20px",
+              background:
+                "linear-gradient(135deg, #f5f3ff, #ffffff)",
+              cursor: "pointer",
+              boxShadow:
+                "0 8px 25px rgba(15,23,42,0.05)",
+            }}
           >
-            ➕ ساخت سؤال دستی
+            <div
+              style={{
+                width: "46px",
+                height: "46px",
+                borderRadius:
+                  "14px",
+                display: "flex",
+                alignItems:
+                  "center",
+                justifyContent:
+                  "center",
+                background:
+                  "#ede9fe",
+                fontSize: "23px",
+                marginBottom:
+                  "12px",
+              }}
+            >
+              🤖
+            </div>
+
+            <div
+              style={{
+                fontSize: "16px",
+                fontWeight: 800,
+                color: "#7c3aed",
+              }}
+            >
+              ساخت آزمون با هوش مصنوعی
+            </div>
+
+            <div
+              style={{
+                fontSize: "13px",
+                color: "#64748b",
+                marginTop: "5px",
+              }}
+            >
+              تولید خودکار سؤال با DeepSeek
+            </div>
           </button>
 
+          {/* MANUAL QUESTION */}
           <button
             onClick={() =>
               navigate(
-                `/teacher/class/${id}`
+                `/teacher/class/${id}/create-question`,
               )
             }
-            className="bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700"
+            style={{
+              textAlign: "right",
+              border:
+                "1px solid #bbf7d0",
+              borderRadius:
+                "18px",
+              padding: "20px",
+              background:
+                "linear-gradient(135deg, #ecfdf5, #ffffff)",
+              cursor: "pointer",
+              boxShadow:
+                "0 8px 25px rgba(15,23,42,0.05)",
+            }}
           >
-            ↩️ بازگشت
+            <div
+              style={{
+                width: "46px",
+                height: "46px",
+                borderRadius:
+                  "14px",
+                display: "flex",
+                alignItems:
+                  "center",
+                justifyContent:
+                  "center",
+                background:
+                  "#d1fae5",
+                fontSize: "23px",
+                marginBottom:
+                  "12px",
+              }}
+            >
+              ✍️
+            </div>
+
+            <div
+              style={{
+                fontSize: "16px",
+                fontWeight: 800,
+                color: "#047857",
+              }}
+            >
+              ساخت سؤال دستی
+            </div>
+
+            <div
+              style={{
+                fontSize: "13px",
+                color: "#64748b",
+                marginTop: "5px",
+              }}
+            >
+              طراحی سؤال اختصاصی برای کلاس
+            </div>
           </button>
-        </div>
-      </div>
 
-      {/* Exams */}
+          {/* CLASS EXAMS */}
+          <div
+            style={{
+              border:
+                "1px solid #fed7aa",
+              borderRadius:
+                "18px",
+              padding: "20px",
+              background:
+                "linear-gradient(135deg, #fff7ed, #ffffff)",
+              boxShadow:
+                "0 8px 25px rgba(15,23,42,0.05)",
+            }}
+          >
+            <div
+              style={{
+                width: "46px",
+                height: "46px",
+                borderRadius:
+                  "14px",
+                display: "flex",
+                alignItems:
+                  "center",
+                justifyContent:
+                  "center",
+                background:
+                  "#fed7aa",
+                fontSize: "23px",
+                marginBottom:
+                  "12px",
+              }}
+            >
+              📝
+            </div>
 
-      {loading ? (
-        <div className="bg-white rounded-xl p-8 text-center shadow">
-          در حال دریافت آزمون‌ها...
+            <div
+              style={{
+                fontSize: "16px",
+                fontWeight: 800,
+                color: "#c2410c",
+              }}
+            >
+              آزمون‌های این کلاس
+            </div>
+
+            <div
+              style={{
+                fontSize: "13px",
+                color: "#64748b",
+                marginTop: "5px",
+              }}
+            >
+              {exams.length} آزمون در این کلاس
+            </div>
+          </div>
         </div>
-      ) : exams.length === 0 ? (
-        <div className="bg-white rounded-xl p-8 text-center shadow">
-          <div className="text-5xl mb-4">
-            📭
+
+        {/* SECTION HEADER */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent:
+              "space-between",
+            alignItems: "center",
+            gap: "15px",
+            marginBottom:
+              "18px",
+          }}
+        >
+          <div>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "23px",
+                fontWeight: 800,
+              }}
+            >
+              آزمون‌های کلاس
+            </h2>
+
+            <p
+              style={{
+                margin:
+                  "6px 0 0",
+                color: "#64748b",
+                fontSize: "14px",
+              }}
+            >
+              آزمون‌ها را مشاهده و سؤال‌های آن‌ها را مدیریت کنید.
+            </p>
           </div>
 
-          <p className="text-gray-600">
-            هنوز آزمونی برای این کلاس ساخته نشده است.
-          </p>
+          <div
+            style={{
+              background: "#fff",
+              border:
+                "1px solid #e2e8f0",
+              borderRadius: "10px",
+              padding:
+                "8px 13px",
+              fontSize: "13px",
+              fontWeight: 700,
+              color: "#64748b",
+            }}
+          >
+            {exams.length} آزمون
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {exams.map((exam) => (
-            <div
-              key={exam.id}
-              className="bg-white rounded-2xl shadow p-6"
-            >
-              {/* Exam Header */}
 
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-800">
-                    {exam.title}
-                  </h2>
+        {/* EXAMS */}
+        {loading ? (
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "20px",
+              padding:
+                "50px 20px",
+              textAlign: "center",
+              border:
+                "1px solid #e2e8f0",
+              boxShadow:
+                "0 8px 25px rgba(15,23,42,0.05)",
+              color: "#64748b",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "35px",
+                marginBottom:
+                  "12px",
+              }}
+            >
+              ⏳
+            </div>
+
+            در حال دریافت آزمون‌ها...
+          </div>
+        ) : exams.length === 0 ? (
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "20px",
+              padding:
+                "55px 25px",
+              textAlign: "center",
+              border:
+                "1px solid #e2e8f0",
+              boxShadow:
+                "0 8px 25px rgba(15,23,42,0.05)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "48px",
+                marginBottom:
+                  "12px",
+              }}
+            >
+              📭
+            </div>
+
+            <h3
+              style={{
+                margin:
+                  "0 0 8px",
+                fontSize: "20px",
+              }}
+            >
+              هنوز آزمونی ساخته نشده است
+            </h3>
+
+            <p
+              style={{
+                margin: 0,
+                color: "#64748b",
+              }}
+            >
+              برای شروع، از گزینه «ساخت آزمون جدید» استفاده کنید.
+            </p>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(330px, 1fr))",
+              gap: "20px",
+            }}
+          >
+            {exams.map((exam) => {
+              const isPublished =
+                exam.status ===
+                "PUBLISHED";
+
+              return (
+                <div
+                  key={exam.id}
+                  style={{
+                    background: "#fff",
+                    borderRadius:
+                      "20px",
+                    padding: "22px",
+                    border:
+                      "1px solid #e2e8f0",
+                    boxShadow:
+                      "0 8px 25px rgba(15,23,42,0.06)",
+                    transition:
+                      "all 0.25s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform =
+                      "translateY(-4px)";
+
+                    e.currentTarget.style.boxShadow =
+                      "0 18px 38px rgba(15,23,42,0.10)";
+
+                    e.currentTarget.style.borderColor =
+                      "#c7d2fe";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform =
+                      "translateY(0)";
+
+                    e.currentTarget.style.boxShadow =
+                      "0 8px 25px rgba(15,23,42,0.06)";
+
+                    e.currentTarget.style.borderColor =
+                      "#e2e8f0";
+                  }}
+                >
+                  {/* CARD HEADER */}
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      justifyContent:
+                        "space-between",
+                      alignItems:
+                        "flex-start",
+                      gap: "12px",
+                      marginBottom:
+                        "18px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display:
+                          "flex",
+                        gap: "12px",
+                        minWidth: 0,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "48px",
+                          height: "48px",
+                          flexShrink: 0,
+                          borderRadius:
+                            "14px",
+                          display:
+                            "flex",
+                          alignItems:
+                            "center",
+                          justifyContent:
+                            "center",
+                          background:
+                            isPublished
+                              ? "linear-gradient(135deg, #dcfce7, #bbf7d0)"
+                              : "linear-gradient(135deg, #fff7ed, #fed7aa)",
+                          fontSize:
+                            "23px",
+                        }}
+                      >
+                        📝
+                      </div>
+
+                      <div
+                        style={{
+                          minWidth: 0,
+                        }}
+                      >
+                        <h3
+                          style={{
+                            margin: 0,
+                            fontSize:
+                              "17px",
+                            fontWeight:
+                              800,
+                            color:
+                              "#0f172a",
+                          }}
+                        >
+                          {exam.title}
+                        </h3>
+
+                        <div
+                          style={{
+                            fontSize:
+                              "12px",
+                            color:
+                              "#94a3b8",
+                            marginTop:
+                              "5px",
+                          }}
+                        >
+                          آزمون شماره{" "}
+                          {exam.id}
+                        </div>
+                      </div>
+                    </div>
+
+                    <span
+                      style={{
+                        flexShrink: 0,
+                        padding:
+                          "6px 10px",
+                        borderRadius:
+                          "999px",
+                        fontSize:
+                          "11px",
+                        fontWeight:
+                          800,
+                        background:
+                          isPublished
+                            ? "#dcfce7"
+                            : "#ffedd5",
+                        color:
+                          isPublished
+                            ? "#15803d"
+                            : "#c2410c",
+                      }}
+                    >
+                      {isPublished
+                        ? "● منتشر شده"
+                        : "● پیش‌نویس"}
+                    </span>
+                  </div>
 
                   {exam.description && (
-                    <p className="text-gray-500 mt-2">
-                      {exam.description}
+                    <p
+                      style={{
+                        margin:
+                          "0 0 18px",
+                        color:
+                          "#64748b",
+                        fontSize:
+                          "13px",
+                        lineHeight:
+                          1.8,
+                      }}
+                    >
+                      {
+                        exam.description
+                      }
                     </p>
                   )}
-                </div>
 
-                <span
-                  className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${
-                    exam.status ===
-                    "PUBLISHED"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
-                >
-                  {getStatusText(
-                    exam.status
+                  {/* STATS */}
+                  <div
+                    style={{
+                      display:
+                        "grid",
+                      gridTemplateColumns:
+                        "repeat(3, 1fr)",
+                      gap: "10px",
+                      marginBottom:
+                        "18px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        background:
+                          "#f8fafc",
+                        borderRadius:
+                          "13px",
+                        padding:
+                          "12px 8px",
+                        textAlign:
+                          "center",
+                        border:
+                          "1px solid #f1f5f9",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize:
+                            "20px",
+                        }}
+                      >
+                        📝
+                      </div>
+
+                      <strong
+                        style={{
+                          display:
+                            "block",
+                          fontSize:
+                            "20px",
+                          marginTop:
+                            "3px",
+                        }}
+                      >
+                        {getExamQuestionCount(
+                          exam,
+                        )}
+                      </strong>
+
+                      <span
+                        style={{
+                          fontSize:
+                            "11px",
+                          color:
+                            "#64748b",
+                        }}
+                      >
+                        سؤال
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        background:
+                          "#f8fafc",
+                        borderRadius:
+                          "13px",
+                        padding:
+                          "12px 8px",
+                        textAlign:
+                          "center",
+                        border:
+                          "1px solid #f1f5f9",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize:
+                            "20px",
+                        }}
+                      >
+                        ⏱️
+                      </div>
+
+                      <strong
+                        style={{
+                          display:
+                            "block",
+                          fontSize:
+                            "20px",
+                          marginTop:
+                            "3px",
+                        }}
+                      >
+                        {exam.duration ||
+                          20}
+                      </strong>
+
+                      <span
+                        style={{
+                          fontSize:
+                            "11px",
+                          color:
+                            "#64748b",
+                        }}
+                      >
+                        دقیقه
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        background:
+                          "#f8fafc",
+                        borderRadius:
+                          "13px",
+                        padding:
+                          "12px 8px",
+                        textAlign:
+                          "center",
+                        border:
+                          "1px solid #f1f5f9",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize:
+                            "20px",
+                        }}
+                      >
+                        👥
+                      </div>
+
+                      <strong
+                        style={{
+                          display:
+                            "block",
+                          fontSize:
+                            "20px",
+                          marginTop:
+                            "3px",
+                        }}
+                      >
+                        {exam.classroomId ||
+                          id}
+                      </strong>
+
+                      <span
+                        style={{
+                          fontSize:
+                            "11px",
+                          color:
+                            "#64748b",
+                        }}
+                      >
+                        کلاس
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* PREVIEW */}
+                  <button
+                    onClick={() =>
+                      navigate(
+                        `/teacher/class/${id}/exam/${exam.id}/preview`,
+                      )
+                    }
+                    style={{
+                      width: "100%",
+                      border: "none",
+                      borderRadius:
+                        "12px",
+                      padding: "12px",
+                      background:
+                        "linear-gradient(135deg, #4f46e5, #6366f1)",
+                      color: "#fff",
+                      fontWeight: 800,
+                      cursor:
+                        "pointer",
+                      boxShadow:
+                        "0 6px 15px rgba(79,70,229,0.18)",
+                      marginBottom:
+                        "10px",
+                    }}
+                  >
+                    ⚙️ مدیریت سؤال‌ها و پیش‌نمایش
+                  </button>
+
+                  {/* DRAFT ACTIONS */}
+                  {exam.status ===
+                    "DRAFT" && (
+                    <div
+                      style={{
+                        display:
+                          "grid",
+                        gridTemplateColumns:
+                          "repeat(3, 1fr)",
+                        gap: "8px",
+                      }}
+                    >
+                      <button
+                        onClick={() =>
+                          openQuestionModal(
+                            exam,
+                          )
+                        }
+                        style={{
+                          border:
+                            "1px solid #bbf7d0",
+                          borderRadius:
+                            "10px",
+                          padding:
+                            "9px 5px",
+                          background:
+                            "#ecfdf5",
+                          color:
+                            "#047857",
+                          fontWeight:
+                            700,
+                          cursor:
+                            "pointer",
+                          fontSize:
+                            "11px",
+                        }}
+                      >
+                        ➕ سؤال
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          openAiModal(
+                            exam,
+                          )
+                        }
+                        style={{
+                          border:
+                            "1px solid #ddd6fe",
+                          borderRadius:
+                            "10px",
+                          padding:
+                            "9px 5px",
+                          background:
+                            "#f5f3ff",
+                          color:
+                            "#7c3aed",
+                          fontWeight:
+                            700,
+                          cursor:
+                            "pointer",
+                          fontSize:
+                            "11px",
+                        }}
+                      >
+                        🤖 سؤال AI
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          publishExam(
+                            exam.id,
+                          )
+                        }
+                        style={{
+                          border:
+                            "1px solid #fed7aa",
+                          borderRadius:
+                            "10px",
+                          padding:
+                            "9px 5px",
+                          background:
+                            "#fff7ed",
+                          color:
+                            "#c2410c",
+                          fontWeight:
+                            700,
+                          cursor:
+                            "pointer",
+                          fontSize:
+                            "11px",
+                        }}
+                      >
+                        🚀 انتشار
+                      </button>
+                    </div>
                   )}
-                </span>
-              </div>
-
-              {/* Info */}
-
-              <div className="grid grid-cols-3 gap-3 mt-6">
-                <div className="bg-gray-50 rounded-xl p-3 text-center">
-                  <div className="text-2xl">
-                    📝
-                  </div>
-
-                  <div className="font-bold mt-1">
-                    {getExamQuestionCount(
-                      exam
-                    )}
-                  </div>
-
-                  <div className="text-xs text-gray-500">
-                    سؤال
-                  </div>
                 </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-                <div className="bg-gray-50 rounded-xl p-3 text-center">
-                  <div className="text-2xl">
-                    ⏱️
-                  </div>
-
-                  <div className="font-bold mt-1">
-                    {exam.duration ||
-                      20}
-                  </div>
-
-                  <div className="text-xs text-gray-500">
-                    دقیقه
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-xl p-3 text-center">
-                  <div className="text-2xl">
-                    👥
-                  </div>
-
-                  <div className="font-bold mt-1">
-                    {exam.classroomId ||
-                      id}
-                  </div>
-
-                  <div className="text-xs text-gray-500">
-                    کلاس
-                  </div>
-                </div>
-              </div>
-
-              {/* Buttons */}
-
-              <div className="flex flex-wrap gap-2 mt-6">
-                <button
-                  onClick={() =>
-                    navigate(
-                      `/teacher/class/${id}/exam/${exam.id}/preview`
-                    )
-                  }
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
-                >
-                  ⚙️ مدیریت سؤال‌ها
-                </button>
-
-                {exam.status ===
-                  "DRAFT" && (
-                  <>
-                    <button
-                      onClick={() =>
-                        openQuestionModal(
-                          exam
-                        )
-                      }
-                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                    >
-                      ➕ افزودن سؤال
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        openAiModal(
-                          exam
-                        )
-                      }
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
-                    >
-                      🤖 افزودن سؤال AI
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        publishExam(
-                          exam.id
-                        )
-                      }
-                      className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
-                    >
-                      🚀 انتشار آزمون
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* =========================
-          Create Exam Modal
-      ========================= */}
-
+      {/* =====================================================
+          CREATE EXAM MODAL
+      ===================================================== */}
       {showCreateExamModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background:
+              "rgba(15,23,42,0.60)",
+            display: "flex",
+            alignItems:
+              "center",
+            justifyContent:
+              "center",
+            padding: "16px",
+            zIndex: 1000,
+            backdropFilter:
+              "blur(5px)",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              width: "100%",
+              maxWidth:
+                "600px",
+              maxHeight:
+                "90vh",
+              overflowY:
+                "auto",
+              borderRadius:
+                "22px",
+              padding: "25px",
+              boxShadow:
+                "0 25px 70px rgba(15,23,42,0.25)",
+            }}
+          >
+            <div
+              style={{
+                display:
+                  "flex",
+                justifyContent:
+                  "space-between",
+                alignItems:
+                  "center",
+                marginBottom:
+                  "22px",
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize:
+                      "22px",
+                    fontWeight:
+                      800,
+                  }}
+                >
+                  ➕ ساخت آزمون جدید
+                </h2>
 
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">
-                ➕ ساخت آزمون جدید
-              </h2>
+                <p
+                  style={{
+                    margin:
+                      "6px 0 0",
+                    color:
+                      "#64748b",
+                    fontSize:
+                      "13px",
+                  }}
+                >
+                  مشخصات اولیه آزمون را وارد کنید.
+                </p>
+              </div>
 
               <button
                 onClick={() =>
                   setShowCreateExamModal(
-                    false
+                    false,
                   )
                 }
-                className="text-gray-500 text-2xl"
+                style={{
+                  width:
+                    "38px",
+                  height:
+                    "38px",
+                  border:
+                    "none",
+                  borderRadius:
+                    "10px",
+                  background:
+                    "#f1f5f9",
+                  cursor:
+                    "pointer",
+                  fontSize:
+                    "20px",
+                }}
               >
                 ×
               </button>
             </div>
 
-            <label className="block mb-2 font-medium">
+            <label
+              style={{
+                display:
+                  "block",
+                fontWeight:
+                  700,
+                marginBottom:
+                  "7px",
+              }}
+            >
               عنوان آزمون
             </label>
 
             <input
-              value={newExamTitle}
+              value={
+                newExamTitle
+              }
               onChange={(e) =>
                 setNewExamTitle(
-                  e.target.value
+                  e.target.value,
                 )
               }
-              className="border rounded-lg p-3 w-full mb-4"
               placeholder="مثلاً آزمون فصل اول"
+              style={{
+                width:
+                  "100%",
+                boxSizing:
+                  "border-box",
+                border:
+                  "1px solid #dbe3ef",
+                borderRadius:
+                  "12px",
+                padding:
+                  "12px",
+                marginBottom:
+                  "16px",
+                outline:
+                  "none",
+              }}
             />
 
-            <label className="block mb-2 font-medium">
+            <label
+              style={{
+                display:
+                  "block",
+                fontWeight:
+                  700,
+                marginBottom:
+                  "7px",
+              }}
+            >
               توضیحات
             </label>
 
@@ -959,79 +1839,207 @@ export default function ExamManagement() {
               }
               onChange={(e) =>
                 setNewExamDescription(
-                  e.target.value
+                  e.target.value,
                 )
               }
-              className="border rounded-lg p-3 w-full mb-4"
               placeholder="توضیحات آزمون"
               rows={3}
+              style={{
+                width:
+                  "100%",
+                boxSizing:
+                  "border-box",
+                border:
+                  "1px solid #dbe3ef",
+                borderRadius:
+                  "12px",
+                padding:
+                  "12px",
+                marginBottom:
+                  "16px",
+                resize:
+                  "vertical",
+              }}
             />
 
-            <label className="block mb-2 font-medium">
-              مدت آزمون
+            <label
+              style={{
+                display:
+                  "block",
+                fontWeight:
+                  700,
+                marginBottom:
+                  "7px",
+              }}
+            >
+              مدت آزمون، به دقیقه
             </label>
 
             <input
               type="number"
-              value={newExamDuration}
+              min={1}
+              value={
+                newExamDuration
+              }
               onChange={(e) =>
                 setNewExamDuration(
                   Number(
-                    e.target.value
-                  )
+                    e.target.value,
+                  ),
                 )
               }
-              className="border rounded-lg p-3 w-full mb-6"
-              min={1}
+              style={{
+                width:
+                  "100%",
+                boxSizing:
+                  "border-box",
+                border:
+                  "1px solid #dbe3ef",
+                borderRadius:
+                  "12px",
+                padding:
+                  "12px",
+                marginBottom:
+                  "20px",
+              }}
             />
 
-            {/* Class Selection */}
-
-            <div className="border-2 border-blue-100 rounded-2xl p-4 mb-6 bg-blue-50">
-
-              <div className="flex items-center justify-between mb-4">
+            {/* CLASSROOMS */}
+            <div
+              style={{
+                border:
+                  "1px solid #c7d2fe",
+                borderRadius:
+                  "17px",
+                padding:
+                  "17px",
+                background:
+                  "linear-gradient(135deg, #eef2ff, #ffffff)",
+                marginBottom:
+                  "20px",
+              }}
+            >
+              <div
+                style={{
+                  display:
+                    "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "center",
+                  gap: "10px",
+                  marginBottom:
+                    "13px",
+                }}
+              >
                 <div>
-                  <h3 className="font-bold text-lg text-blue-900">
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize:
+                        "16px",
+                      fontWeight:
+                        800,
+                      color:
+                        "#312e81",
+                    }}
+                  >
                     👥 کلاس‌های مقصد
                   </h3>
 
-                  <p className="text-sm text-blue-700 mt-1">
+                  <p
+                    style={{
+                      margin:
+                        "5px 0 0",
+                      fontSize:
+                        "12px",
+                      color:
+                        "#64748b",
+                    }}
+                  >
                     آزمون برای کلاس‌های انتخاب‌شده ساخته می‌شود.
                   </p>
                 </div>
 
-                <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
-                  {selectedClassroomIds.length} کلاس
+                <span
+                  style={{
+                    background:
+                      "#4f46e5",
+                    color:
+                      "#fff",
+                    borderRadius:
+                      "999px",
+                    padding:
+                      "5px 10px",
+                    fontSize:
+                      "11px",
+                    fontWeight:
+                      800,
+                  }}
+                >
+                  {
+                    selectedClassroomIds.length
+                  }{" "}
+                  کلاس
                 </span>
               </div>
 
               {classroomsLoading ? (
-                <div className="bg-white rounded-xl p-4 text-center">
+                <div
+                  style={{
+                    background:
+                      "#fff",
+                    borderRadius:
+                      "12px",
+                    padding:
+                      "18px",
+                    textAlign:
+                      "center",
+                    color:
+                      "#64748b",
+                  }}
+                >
                   در حال دریافت کلاس‌ها...
                 </div>
               ) : teacherClassrooms.length ===
                 0 ? (
-                <div className="bg-white rounded-xl p-4 text-center text-gray-500">
+                <div
+                  style={{
+                    background:
+                      "#fff",
+                    borderRadius:
+                      "12px",
+                    padding:
+                      "18px",
+                    textAlign:
+                      "center",
+                    color:
+                      "#64748b",
+                    fontSize:
+                      "13px",
+                  }}
+                >
                   کلاس دیگری برای انتخاب پیدا نشد.
-                  <br />
-
-                  <span className="text-sm">
-                    کلاس فعلی به صورت خودکار قابل انتخاب است.
-                  </span>
                 </div>
               ) : (
-                <div className="space-y-2">
-
+                <div
+                  style={{
+                    display:
+                      "grid",
+                    gap:
+                      "8px",
+                  }}
+                >
                   {teacherClassrooms.map(
                     (classroom) => {
                       const classroomId =
                         Number(
-                          classroom.id
+                          classroom.id,
                         );
 
                       const checked =
                         selectedClassroomIds.includes(
-                          classroomId
+                          classroomId,
                         );
 
                       return (
@@ -1039,11 +2047,27 @@ export default function ExamManagement() {
                           key={
                             classroomId
                           }
-                          className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
-                            checked
-                              ? "bg-blue-100 border-blue-400"
-                              : "bg-white border-gray-200 hover:bg-gray-50"
-                          }`}
+                          style={{
+                            display:
+                              "flex",
+                            alignItems:
+                              "center",
+                            gap: "10px",
+                            padding:
+                              "11px",
+                            border:
+                              checked
+                                ? "1px solid #818cf8"
+                                : "1px solid #e2e8f0",
+                            background:
+                              checked
+                                ? "#eef2ff"
+                                : "#fff",
+                            cursor:
+                              "pointer",
+                            borderRadius:
+                              "12px",
+                          }}
                         >
                           <input
                             type="checkbox"
@@ -1052,41 +2076,84 @@ export default function ExamManagement() {
                             }
                             onChange={() =>
                               toggleClassroom(
-                                classroomId
+                                classroomId,
                               )
                             }
-                            className="w-5 h-5"
+                            style={{
+                              width:
+                                "18px",
+                              height:
+                                "18px",
+                            }}
                           />
 
-                          <div className="flex-1">
-                            <div className="font-bold">
+                          <div
+                            style={{
+                              flex:
+                                1,
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontWeight:
+                                  800,
+                                fontSize:
+                                  "13px",
+                              }}
+                            >
                               {getClassroomName(
-                                classroom
+                                classroom,
                               )}
                             </div>
 
-                            <div className="text-xs text-gray-500">
+                            <div
+                              style={{
+                                fontSize:
+                                  "11px",
+                                color:
+                                  "#94a3b8",
+                                marginTop:
+                                  "3px",
+                              }}
+                            >
                               شناسه کلاس:{" "}
-                              {classroomId}
+                              {
+                                classroomId
+                              }
                             </div>
                           </div>
 
                           {checked && (
-                            <span className="text-blue-600 font-bold">
+                            <span
+                              style={{
+                                color:
+                                  "#4f46e5",
+                                fontSize:
+                                  "12px",
+                                fontWeight:
+                                  800,
+                              }}
+                            >
                               ✓ انتخاب شد
                             </span>
                           )}
                         </label>
                       );
-                    }
+                    },
                   )}
-
                 </div>
               )}
             </div>
 
-            <div className="flex gap-3">
-
+            <div
+              style={{
+                display:
+                  "grid",
+                gridTemplateColumns:
+                  "1fr 1fr",
+                gap: "10px",
+              }}
+            >
               <button
                 onClick={
                   createDraftExam
@@ -1096,7 +2163,28 @@ export default function ExamManagement() {
                   selectedClassroomIds.length ===
                     0
                 }
-                className="bg-blue-600 text-white px-5 py-3 rounded-lg flex-1 disabled:opacity-50"
+                style={{
+                  border:
+                    "none",
+                  borderRadius:
+                    "12px",
+                  padding:
+                    "12px",
+                  background:
+                    "linear-gradient(135deg, #4f46e5, #6366f1)",
+                  color:
+                    "#fff",
+                  fontWeight:
+                    800,
+                  cursor:
+                    "pointer",
+                  opacity:
+                    createExamLoading ||
+                    selectedClassroomIds.length ===
+                      0
+                      ? 0.5
+                      : 1,
+                }}
               >
                 {createExamLoading
                   ? "در حال ساخت..."
@@ -1106,39 +2194,131 @@ export default function ExamManagement() {
               <button
                 onClick={() =>
                   setShowCreateExamModal(
-                    false
+                    false,
                   )
                 }
-                className="bg-gray-200 px-5 py-3 rounded-lg"
+                style={{
+                  border:
+                    "none",
+                  borderRadius:
+                    "12px",
+                  padding:
+                    "12px",
+                  background:
+                    "#f1f5f9",
+                  color:
+                    "#475569",
+                  fontWeight:
+                    700,
+                  cursor:
+                    "pointer",
+                }}
               >
                 انصراف
               </button>
-
             </div>
-
           </div>
         </div>
       )}
 
-      {/* =========================
-          Question Modal
-      ========================= */}
-
+      {/* =====================================================
+          QUESTION MODAL
+      ===================================================== */}
       {showQuestionModal &&
         selectedExam && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
-
-              <div className="flex justify-between items-center mb-6">
-
+          <div
+            style={{
+              position:
+                "fixed",
+              inset: 0,
+              background:
+                "rgba(15,23,42,0.60)",
+              display:
+                "flex",
+              alignItems:
+                "center",
+              justifyContent:
+                "center",
+              padding:
+                "16px",
+              zIndex: 1000,
+              backdropFilter:
+                "blur(5px)",
+            }}
+          >
+            <div
+              style={{
+                background:
+                  "#fff",
+                width:
+                  "100%",
+                maxWidth:
+                  "900px",
+                maxHeight:
+                  "92vh",
+                overflowY:
+                  "auto",
+                borderRadius:
+                  "22px",
+                padding:
+                  "25px",
+                boxShadow:
+                  "0 25px 70px rgba(15,23,42,0.25)",
+              }}
+            >
+              <div
+                style={{
+                  display:
+                    "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "flex-start",
+                  gap:
+                    "15px",
+                  marginBottom:
+                    "20px",
+                }}
+              >
                 <div>
-                  <h2 className="text-2xl font-bold">
+                  <div
+                    style={{
+                      fontSize:
+                        "12px",
+                      color:
+                        "#64748b",
+                      marginBottom:
+                        "5px",
+                    }}
+                  >
+                    مدیریت سؤال
+                  </div>
+
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontSize:
+                        "22px",
+                      fontWeight:
+                        800,
+                    }}
+                  >
                     ➕ افزودن سؤال به آزمون
                   </h2>
 
-                  <p className="text-gray-500 mt-1">
-                    {selectedExam.title}
+                  <p
+                    style={{
+                      margin:
+                        "6px 0 0",
+                      color:
+                        "#64748b",
+                      fontSize:
+                        "13px",
+                    }}
+                  >
+                    {
+                      selectedExam.title
+                    }
                   </p>
                 </div>
 
@@ -1146,51 +2326,130 @@ export default function ExamManagement() {
                   onClick={
                     closeQuestionModal
                   }
-                  className="text-gray-500 text-2xl"
+                  style={{
+                    width:
+                      "38px",
+                    height:
+                      "38px",
+                    border:
+                      "none",
+                    borderRadius:
+                      "10px",
+                    background:
+                      "#f1f5f9",
+                    cursor:
+                      "pointer",
+                    fontSize:
+                      "20px",
+                  }}
                 >
                   ×
                 </button>
-
               </div>
 
               {!showNewQuestionForm && (
                 <button
                   onClick={() =>
                     setShowNewQuestionForm(
-                      true
+                      true,
                     )
                   }
-                  className="w-full bg-green-600 text-white py-3 rounded-xl mb-6 hover:bg-green-700"
+                  style={{
+                    width:
+                      "100%",
+                    border:
+                      "1px solid #bbf7d0",
+                    borderRadius:
+                      "14px",
+                    padding:
+                      "13px",
+                    background:
+                      "linear-gradient(135deg, #ecfdf5, #ffffff)",
+                    color:
+                      "#047857",
+                    fontWeight:
+                      800,
+                    cursor:
+                      "pointer",
+                    marginBottom:
+                      "18px",
+                  }}
                 >
                   ✍️ نوشتن سؤال جدید توسط معلم
                 </button>
               )}
 
               {showNewQuestionForm && (
-                <div className="border-2 border-green-200 bg-green-50 rounded-2xl p-5 mb-6">
-
-                  <div className="flex justify-between items-center mb-5">
-
-                    <h3 className="text-xl font-bold text-green-800">
+                <div
+                  style={{
+                    border:
+                      "1px solid #bbf7d0",
+                    background:
+                      "linear-gradient(135deg, #ecfdf5, #ffffff)",
+                    borderRadius:
+                      "18px",
+                    padding:
+                      "18px",
+                    marginBottom:
+                      "20px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      justifyContent:
+                        "space-between",
+                      alignItems:
+                        "center",
+                      marginBottom:
+                        "16px",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: 0,
+                        color:
+                          "#047857",
+                        fontSize:
+                          "18px",
+                      }}
+                    >
                       ✍️ ساخت سؤال جدید
                     </h3>
 
                     <button
                       onClick={() => {
                         setShowNewQuestionForm(
-                          false
+                          false,
                         );
-
                         resetNewQuestionForm();
                       }}
-                      className="text-gray-500"
+                      style={{
+                        border:
+                          "none",
+                        background:
+                          "transparent",
+                        color:
+                          "#64748b",
+                        cursor:
+                          "pointer",
+                      }}
                     >
                       بستن
                     </button>
-
                   </div>
 
-                  <label className="block font-medium mb-2">
+                  <label
+                    style={{
+                      display:
+                        "block",
+                      fontWeight:
+                        700,
+                      marginBottom:
+                        "7px",
+                    }}
+                  >
                     متن سؤال *
                   </label>
 
@@ -1200,15 +2459,37 @@ export default function ExamManagement() {
                     }
                     onChange={(e) =>
                       setNewQuestionTitle(
-                        e.target.value
+                        e.target.value,
                       )
                     }
-                    className="border rounded-lg p-3 w-full mb-4"
                     rows={3}
                     placeholder="مثلاً حاصل 5 × 6 چند است؟"
+                    style={{
+                      width:
+                        "100%",
+                      boxSizing:
+                        "border-box",
+                      border:
+                        "1px solid #dbe3ef",
+                      borderRadius:
+                        "12px",
+                      padding:
+                        "12px",
+                      marginBottom:
+                        "14px",
+                    }}
                   />
 
-                  <label className="block font-medium mb-2">
+                  <label
+                    style={{
+                      display:
+                        "block",
+                      fontWeight:
+                        700,
+                      marginBottom:
+                        "7px",
+                    }}
+                  >
                     توضیحات
                   </label>
 
@@ -1218,18 +2499,48 @@ export default function ExamManagement() {
                     }
                     onChange={(e) =>
                       setNewQuestionDescription(
-                        e.target.value
+                        e.target.value,
                       )
                     }
-                    className="border rounded-lg p-3 w-full mb-4"
                     rows={2}
                     placeholder="توضیح اختیاری"
+                    style={{
+                      width:
+                        "100%",
+                      boxSizing:
+                        "border-box",
+                      border:
+                        "1px solid #dbe3ef",
+                      borderRadius:
+                        "12px",
+                      padding:
+                        "12px",
+                      marginBottom:
+                        "14px",
+                    }}
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-
+                  <div
+                    style={{
+                      display:
+                        "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap:
+                        "12px",
+                    }}
+                  >
                     <div>
-                      <label className="block font-medium mb-2">
+                      <label
+                        style={{
+                          display:
+                            "block",
+                          fontWeight:
+                            700,
+                          marginBottom:
+                            "7px",
+                        }}
+                      >
                         فصل
                       </label>
 
@@ -1239,15 +2550,35 @@ export default function ExamManagement() {
                         }
                         onChange={(e) =>
                           setNewQuestionChapter(
-                            e.target.value
+                            e.target.value,
                           )
                         }
-                        className="border rounded-lg p-3 w-full"
+                        style={{
+                          width:
+                            "100%",
+                          boxSizing:
+                            "border-box",
+                          border:
+                            "1px solid #dbe3ef",
+                          borderRadius:
+                            "12px",
+                          padding:
+                            "11px",
+                        }}
                       />
                     </div>
 
                     <div>
-                      <label className="block font-medium mb-2">
+                      <label
+                        style={{
+                          display:
+                            "block",
+                          fontWeight:
+                            700,
+                          marginBottom:
+                            "7px",
+                        }}
+                      >
                         نوع سؤال
                       </label>
 
@@ -1257,10 +2588,21 @@ export default function ExamManagement() {
                         }
                         onChange={(e) =>
                           setNewQuestionType(
-                            e.target.value
+                            e.target.value,
                           )
                         }
-                        className="border rounded-lg p-3 w-full"
+                        style={{
+                          width:
+                            "100%",
+                          border:
+                            "1px solid #dbe3ef",
+                          borderRadius:
+                            "12px",
+                          padding:
+                            "11px",
+                          background:
+                            "#fff",
+                        }}
                       >
                         <option value="MULTIPLE_CHOICE">
                           چهارگزینه‌ای
@@ -1281,7 +2623,16 @@ export default function ExamManagement() {
                     </div>
 
                     <div>
-                      <label className="block font-medium mb-2">
+                      <label
+                        style={{
+                          display:
+                            "block",
+                          fontWeight:
+                            700,
+                          marginBottom:
+                            "7px",
+                        }}
+                      >
                         سختی
                       </label>
 
@@ -1292,11 +2643,22 @@ export default function ExamManagement() {
                         onChange={(e) =>
                           setNewQuestionDifficulty(
                             Number(
-                              e.target.value
-                            )
+                              e.target.value,
+                            ),
                           )
                         }
-                        className="border rounded-lg p-3 w-full"
+                        style={{
+                          width:
+                            "100%",
+                          border:
+                            "1px solid #dbe3ef",
+                          borderRadius:
+                            "12px",
+                          padding:
+                            "11px",
+                          background:
+                            "#fff",
+                        }}
                       >
                         <option value={1}>
                           آسان
@@ -1311,91 +2673,116 @@ export default function ExamManagement() {
                         </option>
                       </select>
                     </div>
-
                   </div>
 
                   {newQuestionType ===
                     "MULTIPLE_CHOICE" && (
                     <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div
+                        style={{
+                          display:
+                            "grid",
+                          gridTemplateColumns:
+                            "repeat(auto-fit, minmax(200px, 1fr))",
+                          gap:
+                            "12px",
+                          marginTop:
+                            "15px",
+                        }}
+                      >
+                        {[
+                          [
+                            "A",
+                            newOptionA,
+                            setNewOptionA,
+                          ],
+                          [
+                            "B",
+                            newOptionB,
+                            setNewOptionB,
+                          ],
+                          [
+                            "C",
+                            newOptionC,
+                            setNewOptionC,
+                          ],
+                          [
+                            "D",
+                            newOptionD,
+                            setNewOptionD,
+                          ],
+                        ].map(
+                          ([
+                            letter,
+                            value,
+                            setter,
+                          ]: any) => (
+                            <div
+                              key={
+                                letter
+                              }
+                            >
+                              <label
+                                style={{
+                                  display:
+                                    "block",
+                                  fontWeight:
+                                    700,
+                                  marginBottom:
+                                    "7px",
+                                }}
+                              >
+                                گزینه{" "}
+                                {
+                                  letter
+                                }
+                              </label>
 
-                        <div>
-                          <label className="block font-medium mb-2">
-                            گزینه A
-                          </label>
-
-                          <input
-                            value={
-                              newOptionA
-                            }
-                            onChange={(e) =>
-                              setNewOptionA(
-                                e.target.value
-                              )
-                            }
-                            className="border rounded-lg p-3 w-full"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block font-medium mb-2">
-                            گزینه B
-                          </label>
-
-                          <input
-                            value={
-                              newOptionB
-                            }
-                            onChange={(e) =>
-                              setNewOptionB(
-                                e.target.value
-                              )
-                            }
-                            className="border rounded-lg p-3 w-full"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block font-medium mb-2">
-                            گزینه C
-                          </label>
-
-                          <input
-                            value={
-                              newOptionC
-                            }
-                            onChange={(e) =>
-                              setNewOptionC(
-                                e.target.value
-                              )
-                            }
-                            className="border rounded-lg p-3 w-full"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block font-medium mb-2">
-                            گزینه D
-                          </label>
-
-                          <input
-                            value={
-                              newOptionD
-                            }
-                            onChange={(e) =>
-                              setNewOptionD(
-                                e.target.value
-                              )
-                            }
-                            className="border rounded-lg p-3 w-full"
-                          />
-                        </div>
-
+                              <input
+                                value={
+                                  value
+                                }
+                                onChange={(
+                                  e,
+                                ) =>
+                                  setter(
+                                    e.target.value,
+                                  )
+                                }
+                                style={{
+                                  width:
+                                    "100%",
+                                  boxSizing:
+                                    "border-box",
+                                  border:
+                                    "1px solid #dbe3ef",
+                                  borderRadius:
+                                    "12px",
+                                  padding:
+                                    "11px",
+                                }}
+                              />
+                            </div>
+                          ),
+                        )}
                       </div>
 
-                      <div className="mt-4">
-
-                        <label className="block font-medium mb-2">
+                      <div
+                        style={{
+                          marginTop:
+                            "15px",
+                        }}
+                      >
+                        <label
+                          style={{
+                            display:
+                              "block",
+                            fontWeight:
+                              700,
+                            marginBottom:
+                              "7px",
+                          }}
+                        >
                           پاسخ صحیح
                         </label>
 
@@ -1405,34 +2792,54 @@ export default function ExamManagement() {
                           }
                           onChange={(e) =>
                             setNewCorrectAnswer(
-                              e.target.value
+                              e.target.value,
                             )
                           }
-                          className="border rounded-lg p-3 w-full"
+                          style={{
+                            width:
+                              "100%",
+                            border:
+                              "1px solid #dbe3ef",
+                            borderRadius:
+                              "12px",
+                            padding:
+                              "11px",
+                            background:
+                              "#fff",
+                          }}
                         >
                           <option value="A">
-                            A
+                            گزینه A
                           </option>
 
                           <option value="B">
-                            B
+                            گزینه B
                           </option>
 
                           <option value="C">
-                            C
+                            گزینه C
                           </option>
 
                           <option value="D">
-                            D
+                            گزینه D
                           </option>
                         </select>
-
                       </div>
                     </>
                   )}
 
-                  <div className="flex gap-3 mt-6">
-
+                  <div
+                    style={{
+                      display:
+                        "grid",
+                      gridTemplateColumns:
+                        "1fr 1fr",
+                      gap:
+                        "10px",
+                      marginTop:
+                        "18px",
+                    }}
+                  >
                     <button
                       onClick={
                         createManualQuestion
@@ -1440,157 +2847,417 @@ export default function ExamManagement() {
                       disabled={
                         createQuestionLoading
                       }
-                      className="bg-green-600 text-white px-5 py-3 rounded-lg flex-1 hover:bg-green-700"
+                      style={{
+                        border:
+                          "none",
+                        borderRadius:
+                          "12px",
+                        padding:
+                          "12px",
+                        background:
+                          "linear-gradient(135deg, #059669, #10b981)",
+                        color:
+                          "#fff",
+                        fontWeight:
+                          800,
+                        cursor:
+                          "pointer",
+                        opacity:
+                          createQuestionLoading
+                            ? 0.6
+                            : 1,
+                      }}
                     >
                       {createQuestionLoading
                         ? "در حال ساخت..."
-                        : "✅ ساخت و افزودن به آزمون"}
+                        : "✅ ساخت و افزودن"}
                     </button>
 
                     <button
                       onClick={() => {
                         setShowNewQuestionForm(
-                          false
+                          false,
                         );
-
                         resetNewQuestionForm();
                       }}
-                      className="bg-gray-200 px-5 py-3 rounded-lg"
+                      style={{
+                        border:
+                          "none",
+                        borderRadius:
+                          "12px",
+                        padding:
+                          "12px",
+                        background:
+                          "#f1f5f9",
+                        color:
+                          "#475569",
+                        fontWeight:
+                          700,
+                        cursor:
+                          "pointer",
+                      }}
                     >
                       انصراف
                     </button>
-
                   </div>
-
                 </div>
               )}
 
-              {/* Question Bank */}
-
+              {/* QUESTION BANK */}
               <div>
+                <div
+                  style={{
+                    display:
+                      "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems:
+                      "center",
+                    marginBottom:
+                      "14px",
+                  }}
+                >
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize:
+                        "18px",
+                      fontWeight:
+                        800,
+                    }}
+                  >
+                    📚 بانک سؤال
+                  </h3>
 
-                <h3 className="text-xl font-bold mb-4">
-                  📚 انتخاب از بانک سؤال
-                </h3>
+                  <span
+                    style={{
+                      fontSize:
+                        "12px",
+                      color:
+                        "#64748b",
+                    }}
+                  >
+                    {
+                      questions.length
+                    }{" "}
+                    سؤال
+                  </span>
+                </div>
 
                 {questionsLoading ? (
-                  <div className="text-center py-8">
+                  <div
+                    style={{
+                      padding:
+                        "30px",
+                      textAlign:
+                        "center",
+                      color:
+                        "#64748b",
+                    }}
+                  >
                     در حال دریافت سؤال‌ها...
                   </div>
                 ) : questions.length ===
                   0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div
+                    style={{
+                      padding:
+                        "30px",
+                      textAlign:
+                        "center",
+                      color:
+                        "#64748b",
+                      background:
+                        "#f8fafc",
+                      borderRadius:
+                        "14px",
+                    }}
+                  >
                     هنوز سؤالی در بانک سؤال وجود ندارد.
                   </div>
                 ) : (
-                  <div className="space-y-3">
-
+                  <div
+                    style={{
+                      display:
+                        "grid",
+                      gap:
+                        "10px",
+                    }}
+                  >
                     {questions.map(
                       (question) => (
                         <div
                           key={
                             question.id
                           }
-                          className="border rounded-xl p-4 hover:bg-gray-50"
+                          style={{
+                            border:
+                              "1px solid #e2e8f0",
+                            borderRadius:
+                              "14px",
+                            padding:
+                              "14px",
+                            background:
+                              "#fff",
+                          }}
                         >
-
-                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-                            <div className="flex-1">
-
-                              <div className="font-bold text-gray-800">
-                                {question.title}
+                          <div
+                            style={{
+                              display:
+                                "flex",
+                              justifyContent:
+                                "space-between",
+                              alignItems:
+                                "center",
+                              gap:
+                                "12px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                flex: 1,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontWeight:
+                                    800,
+                                  fontSize:
+                                    "14px",
+                                  color:
+                                    "#0f172a",
+                                }}
+                              >
+                                {
+                                  question.title
+                                }
                               </div>
 
                               {question.description && (
-                                <div className="text-sm text-gray-500 mt-1">
+                                <div
+                                  style={{
+                                    fontSize:
+                                      "12px",
+                                    color:
+                                      "#64748b",
+                                    marginTop:
+                                      "5px",
+                                  }}
+                                >
                                   {
                                     question.description
                                   }
                                 </div>
                               )}
 
-                              <div className="flex flex-wrap gap-2 mt-2 text-xs">
-
-                                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                                  {question.chapter ||
-                                    "General"}
+                              <div
+                                style={{
+                                  display:
+                                    "flex",
+                                  flexWrap:
+                                    "wrap",
+                                  gap:
+                                    "6px",
+                                  marginTop:
+                                    "9px",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    background:
+                                      "#eef2ff",
+                                    color:
+                                      "#4338ca",
+                                    padding:
+                                      "4px 8px",
+                                    borderRadius:
+                                      "999px",
+                                    fontSize:
+                                      "10px",
+                                    fontWeight:
+                                      700,
+                                  }}
+                                >
+                                  {
+                                    question.chapter ||
+                                    "General"
+                                  }
                                 </span>
 
-                                <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                                  سختی:{" "}
-                                  {question.difficulty ||
-                                    1}
+                                <span
+                                  style={{
+                                    background:
+                                      "#f1f5f9",
+                                    color:
+                                      "#475569",
+                                    padding:
+                                      "4px 8px",
+                                    borderRadius:
+                                      "999px",
+                                    fontSize:
+                                      "10px",
+                                    fontWeight:
+                                      700,
+                                  }}
+                                >
+                                  سختی{" "}
+                                  {
+                                    question.difficulty ||
+                                    1
+                                  }
                                 </span>
-
-                                <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                                  {question.questionType ||
-                                    "MULTIPLE_CHOICE"}
-                                </span>
-
                               </div>
-
                             </div>
 
                             <button
                               onClick={() =>
+                                selectedExam &&
                                 addQuestionToExam(
                                   selectedExam.id,
-                                  question.id
+                                  question.id,
                                 )
                               }
-                              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                              style={{
+                                flexShrink:
+                                  0,
+                                border:
+                                  "none",
+                                borderRadius:
+                                  "10px",
+                                padding:
+                                  "9px 13px",
+                                background:
+                                  "#ecfdf5",
+                                color:
+                                  "#047857",
+                                fontWeight:
+                                  800,
+                                cursor:
+                                  "pointer",
+                              }}
                             >
                               ➕ افزودن
                             </button>
-
                           </div>
-
                         </div>
-                      )
+                      ),
                     )}
-
                   </div>
                 )}
-
               </div>
 
-              <div className="mt-6 text-left">
-
-                <button
-                  onClick={
-                    closeQuestionModal
-                  }
-                  className="bg-gray-200 px-5 py-3 rounded-lg"
-                >
-                  بستن
-                </button>
-
-              </div>
-
+              <button
+                onClick={
+                  closeQuestionModal
+                }
+                style={{
+                  marginTop:
+                    "20px",
+                  border:
+                    "none",
+                  borderRadius:
+                    "12px",
+                  padding:
+                    "11px 20px",
+                  background:
+                    "#f1f5f9",
+                  color:
+                    "#475569",
+                  fontWeight:
+                    700,
+                  cursor:
+                    "pointer",
+                }}
+              >
+                بستن
+              </button>
             </div>
           </div>
         )}
 
-      {/* =========================
-          AI Question Modal
-      ========================= */}
-
+      {/* =====================================================
+          AI MODAL
+      ===================================================== */}
       {showAiModal &&
         aiExam && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
-
-              <div className="flex justify-between items-center mb-6">
-
+          <div
+            style={{
+              position:
+                "fixed",
+              inset: 0,
+              background:
+                "rgba(15,23,42,0.60)",
+              display:
+                "flex",
+              alignItems:
+                "center",
+              justifyContent:
+                "center",
+              padding:
+                "16px",
+              zIndex: 1000,
+              backdropFilter:
+                "blur(5px)",
+            }}
+          >
+            <div
+              style={{
+                background:
+                  "#fff",
+                width:
+                  "100%",
+                maxWidth:
+                  "650px",
+                maxHeight:
+                  "92vh",
+                overflowY:
+                  "auto",
+                borderRadius:
+                  "22px",
+                padding:
+                  "25px",
+                boxShadow:
+                  "0 25px 70px rgba(15,23,42,0.25)",
+              }}
+            >
+              <div
+                style={{
+                  display:
+                    "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "center",
+                  marginBottom:
+                    "20px",
+                }}
+              >
                 <div>
-                  <h2 className="text-2xl font-bold">
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontSize:
+                        "21px",
+                      fontWeight:
+                        800,
+                    }}
+                  >
                     🤖 افزودن سؤال با AI
                   </h2>
 
-                  <p className="text-gray-500 mt-1">
-                    {aiExam.title}
+                  <p
+                    style={{
+                      margin:
+                        "6px 0 0",
+                      color:
+                        "#64748b",
+                      fontSize:
+                        "13px",
+                    }}
+                  >
+                    {
+                      aiExam.title
+                    }
                   </p>
                 </div>
 
@@ -1598,42 +3265,104 @@ export default function ExamManagement() {
                   onClick={
                     closeAiModal
                   }
-                  className="text-gray-500 text-2xl"
+                  style={{
+                    width:
+                      "38px",
+                    height:
+                      "38px",
+                    border:
+                      "none",
+                    borderRadius:
+                      "10px",
+                    background:
+                      "#f1f5f9",
+                    cursor:
+                      "pointer",
+                    fontSize:
+                      "20px",
+                  }}
                 >
                   ×
                 </button>
-
               </div>
 
-              <label className="block font-medium mb-2">
+              <label
+                style={{
+                  display:
+                    "block",
+                  fontWeight:
+                    700,
+                  marginBottom:
+                    "7px",
+                }}
+              >
                 فصل
               </label>
 
               <input
-                value={aiChapter}
+                value={
+                  aiChapter
+                }
                 onChange={(e) =>
                   setAiChapter(
-                    e.target.value
+                    e.target.value,
                   )
                 }
-                className="border rounded-lg p-3 w-full mb-4"
                 placeholder="مثلاً Algebra"
+                style={{
+                  width:
+                    "100%",
+                  boxSizing:
+                    "border-box",
+                  border:
+                    "1px solid #dbe3ef",
+                  borderRadius:
+                    "12px",
+                  padding:
+                    "12px",
+                  marginBottom:
+                    "15px",
+                }}
               />
 
-              <label className="block font-medium mb-2">
+              <label
+                style={{
+                  display:
+                    "block",
+                  fontWeight:
+                    700,
+                  marginBottom:
+                    "7px",
+                }}
+              >
                 سختی
               </label>
 
               <select
-                value={aiDifficulty}
+                value={
+                  aiDifficulty
+                }
                 onChange={(e) =>
                   setAiDifficulty(
                     Number(
-                      e.target.value
-                    )
+                      e.target.value,
+                    ),
                   )
                 }
-                className="border rounded-lg p-3 w-full mb-4"
+                style={{
+                  width:
+                    "100%",
+                  border:
+                    "1px solid #dbe3ef",
+                  borderRadius:
+                    "12px",
+                  padding:
+                    "12px",
+                  background:
+                    "#fff",
+                  marginBottom:
+                    "15px",
+                }}
               >
                 <option value={1}>
                   آسان
@@ -1648,7 +3377,16 @@ export default function ExamManagement() {
                 </option>
               </select>
 
-              <label className="block font-medium mb-2">
+              <label
+                style={{
+                  display:
+                    "block",
+                  fontWeight:
+                    700,
+                  marginBottom:
+                    "7px",
+                }}
+              >
                 تعداد سؤال
               </label>
 
@@ -1656,25 +3394,278 @@ export default function ExamManagement() {
                 type="number"
                 min={1}
                 max={20}
-                value={aiCount}
+                value={
+                  aiCount
+                }
                 onChange={(e) =>
                   setAiCount(
                     Number(
-                      e.target.value
-                    )
+                      e.target.value,
+                    ),
                   )
                 }
-                className="border rounded-lg p-3 w-full mb-6"
+                style={{
+                  width:
+                    "100%",
+                  boxSizing:
+                    "border-box",
+                  border:
+                    "1px solid #dbe3ef",
+                  borderRadius:
+                    "12px",
+                  padding:
+                    "12px",
+                  marginBottom:
+                    "20px",
+                }}
               />
 
-              <div className="flex gap-3">
+              {/* ==========================================
+                  AI GENERATED QUESTIONS
+              ========================================== */}
 
+              {aiGeneratedQuestions.length > 0 && (
+                <div
+                  style={{
+                    marginBottom:
+                      "20px",
+                    border:
+                      "1px solid #ddd6fe",
+                    borderRadius:
+                      "16px",
+                    padding:
+                      "15px",
+                    background:
+                      "linear-gradient(135deg, #faf5ff, #ffffff)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display:
+                        "flex",
+                      justifyContent:
+                        "space-between",
+                      alignItems:
+                        "center",
+                      gap:
+                        "10px",
+                      marginBottom:
+                        "13px",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize:
+                          "16px",
+                        fontWeight:
+                          800,
+                        color:
+                          "#6d28d9",
+                      }}
+                    >
+                      🤖 سؤال‌های تولیدشده
+                    </h3>
+
+                    <span
+                      style={{
+                        fontSize:
+                          "11px",
+                        color:
+                          "#64748b",
+                      }}
+                    >
+                      {
+                        aiGeneratedQuestions.length
+                      }{" "}
+                      سؤال
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      display:
+                        "grid",
+                      gap:
+                        "10px",
+                    }}
+                  >
+                    {aiGeneratedQuestions.map(
+                      (
+                        question,
+                        index,
+                      ) => (
+                        <div
+                          key={
+                            question.id
+                          }
+                          style={{
+                            border:
+                              "1px solid #e2e8f0",
+                            borderRadius:
+                              "13px",
+                            padding:
+                              "13px",
+                            background:
+                              "#fff",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontWeight:
+                                800,
+                              fontSize:
+                                "13px",
+                              color:
+                                "#0f172a",
+                              lineHeight:
+                                1.8,
+                            }}
+                          >
+                            سؤال{" "}
+                            {index +
+                              1}
+                            :{" "}
+                            {
+                              question.title
+                            }
+                          </div>
+
+                          {question.chapter && (
+                            <div
+                              style={{
+                                fontSize:
+                                  "11px",
+                                color:
+                                  "#64748b",
+                                marginTop:
+                                  "5px",
+                              }}
+                            >
+                              مبحث:{" "}
+                              {
+                                question.chapter
+                              }
+                            </div>
+                          )}
+
+                          <div
+                            style={{
+                              marginTop:
+                                "10px",
+                              display:
+                                "flex",
+                              alignItems:
+                                "center",
+                              justifyContent:
+                                "space-between",
+                              gap:
+                                "10px",
+                              flexWrap:
+                                "wrap",
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize:
+                                  "11px",
+                                fontWeight:
+                                  700,
+                                color:
+                                  question.isInQuestionBank
+                                    ? "#047857"
+                                    : "#b45309",
+                                background:
+                                  question.isInQuestionBank
+                                    ? "#ecfdf5"
+                                    : "#fffbeb",
+                                borderRadius:
+                                  "999px",
+                                padding:
+                                  "5px 9px",
+                              }}
+                            >
+                              {question.isInQuestionBank
+                                ? "✓ در بانک سؤال"
+                                : "در بانک سؤال نیست"}
+                            </span>
+
+                            {!question.isInQuestionBank && (
+                              <button
+                                onClick={() =>
+                                  saveAiQuestionToBank(
+                                    Number(
+                                      question.id,
+                                    ),
+                                  )
+                                }
+                                style={{
+                                  border:
+                                    "1px solid #c4b5fd",
+                                  borderRadius:
+                                    "9px",
+                                  padding:
+                                    "8px 12px",
+                                  background:
+                                    "#f5f3ff",
+                                  color:
+                                    "#6d28d9",
+                                  fontWeight:
+                                    800,
+                                  cursor:
+                                    "pointer",
+                                  fontSize:
+                                    "11px",
+                                }}
+                              >
+                                💾 ذخیره در بانک سؤال
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div
+                style={{
+                  display:
+                    "grid",
+                  gridTemplateColumns:
+                    "1fr 1fr",
+                  gap:
+                    "10px",
+                }}
+              >
                 <button
                   onClick={
                     addAiQuestionsToExam
                   }
-                  disabled={aiLoading}
-                  className="bg-purple-600 text-white px-5 py-3 rounded-lg flex-1 hover:bg-purple-700"
+                  disabled={
+                    aiLoading
+                  }
+                  style={{
+                    border:
+                      "none",
+                    borderRadius:
+                      "12px",
+                    padding:
+                      "12px",
+                    background:
+                      "linear-gradient(135deg, #7c3aed, #8b5cf6)",
+                    color:
+                      "#fff",
+                    fontWeight:
+                      800,
+                    cursor:
+                      "pointer",
+                    opacity:
+                      aiLoading
+                        ? 0.6
+                        : 1,
+                  }}
                 >
                   {aiLoading
                     ? "در حال ساخت..."
@@ -1685,15 +3676,27 @@ export default function ExamManagement() {
                   onClick={
                     closeAiModal
                   }
-                  className="bg-gray-200 px-5 py-3 rounded-lg"
+                  style={{
+                    border:
+                      "none",
+                    borderRadius:
+                      "12px",
+                    padding:
+                      "12px",
+                    background:
+                      "#f1f5f9",
+                    color:
+                      "#475569",
+                    fontWeight:
+                      700,
+                    cursor:
+                      "pointer",
+                  }}
                 >
-                  انصراف
+                  بستن
                 </button>
-
               </div>
-
             </div>
-
           </div>
         )}
     </div>
